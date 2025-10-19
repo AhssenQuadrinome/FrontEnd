@@ -1,0 +1,90 @@
+@startuml ticket_ordering
+!theme plain
+title OurBusWay - Diagramme de Séquence de Commande de Tickets
+
+actor "Passager" as P
+participant "Application Web" as APP
+participant "Passerelle API" as GW
+participant "Microservice Utilisateur" as USER
+participant "Microservice Trajet et Horaire" as TRAJET
+participant "Microservice Ticket" as TICKET
+participant "Microservice Paiement" as PAY
+participant "Microservice Notification" as NOTIF
+participant "Base de Données" as DB
+
+== Recherche d'Itinéraires ==
+P -> APP: Rechercher trajets (origine, destination, date)
+APP -> GW: GET /api/trajets/recherche
+note right: Authorization: Bearer <token>
+GW -> USER: Valider token JWT
+USER --> GW: Token valide
+GW -> TRAJET: Rechercher trajets disponibles
+TRAJET -> DB: Requête trajets et horaires
+DB --> TRAJET: Trajets disponibles
+TRAJET -> TRAJET: Calculer prix et disponibilités
+TRAJET --> GW: Résultats avec tarification
+GW --> APP: Trajets disponibles
+APP --> P: Afficher les trajets
+
+== Sélection de Places ==
+P -> APP: Sélectionner trajet + places
+APP -> GW: GET /api/trajets/{id}/places
+GW -> TRAJET: Obtenir plan des places
+TRAJET -> DB: Consulter disponibilité des places
+DB --> TRAJET: Configuration des places
+TRAJET --> GW: Plan des places
+GW --> APP: Places disponibles
+APP --> P: Afficher sélection des places
+
+== Création du Ticket ==
+P -> APP: Confirmer achat de ticket
+APP -> GW: POST /api/tickets/creer
+GW -> TICKET: Créer nouveau ticket
+TICKET -> DB: Réserver places temporairement (5 min)
+alt Places disponibles
+    TICKET -> DB: Créer ticket en attente
+    TICKET -> TICKET: Calculer prix total
+    TICKET --> GW: Ticket créé
+    GW --> APP: Détails du ticket
+    APP --> P: Procéder au paiement
+else Places non disponibles
+    TICKET --> GW: 409 - Places prises
+    GW --> APP: Échec création ticket
+    APP --> P: Afficher erreur
+end
+
+== Paiement ==
+P -> APP: Effectuer paiement
+APP -> GW: POST /api/paiements/traiter
+GW -> PAY: Traiter le paiement
+PAY -> PAY: Valider détails de paiement
+alt Paiement réussi
+    PAY -> TICKET: Confirmer le ticket
+    TICKET -> DB: Mettre à jour statut ticket
+    TICKET -> DB: Confirmer réservation places
+    TICKET -> TICKET: Générer ticket avec QR code
+    PAY -> NOTIF: Envoyer confirmation
+    NOTIF -> NOTIF: Envoyer email et SMS
+    PAY --> GW: Paiement réussi
+    GW --> APP: Ticket confirmé
+    APP --> P: Afficher ticket
+else Paiement échoué
+    PAY -> TICKET: Libérer places réservées
+    TICKET -> DB: Remettre places disponibles
+    PAY --> GW: Paiement échoué
+    GW --> APP: Erreur paiement
+    APP --> P: Afficher erreur
+end
+
+== Consultation des Tickets ==
+P -> APP: Voir mes tickets
+APP -> GW: GET /api/tickets/mes-tickets
+GW -> USER: Valider utilisateur
+GW -> TICKET: Obtenir tickets utilisateur
+TICKET -> DB: Consulter tickets utilisateur
+DB --> TICKET: Données des tickets
+TICKET --> GW: Liste des tickets
+GW --> APP: Tickets utilisateur
+APP --> P: Afficher les tickets
+
+@enduml
