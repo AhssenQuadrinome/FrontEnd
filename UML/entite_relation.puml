@@ -1,0 +1,101 @@
+@startuml entite_relation
+' Diagramme Entité-Relation complet pour OurBusWay
+entity "Utilisateur" as Utilisateur {
+  * id : UUID
+  * nom : String
+  * email : String
+  * motDePasse : String
+  * role : String
+}
+entity "Conducteur" as Conducteur {
+  * id : UUID
+  * nom : String
+  * contact : String
+}
+entity "Bus" as Bus {
+  * id : UUID
+  * immatriculation : String
+  * capacité : Int
+  * équipements : String
+}
+entity "Trajet" as Trajet {
+  * id : UUID
+  * origine : String
+  * destination : String
+  * distance : Float
+}
+entity "Horaire" as Horaire {
+  * id : UUID
+  * dateHeure : DateTime
+  * prix : Decimal
+}
+entity "Ticket" as Ticket {
+  * id : UUID
+  * codeQR : String
+  * dateAchat : DateTime
+  * statut : String
+}
+entity "Abonnement" as Abonnement {
+  * id : UUID
+  * type : String
+  * dateDebut : DateTime
+  * dateFin : DateTime
+  * statut : String
+}
+entity "Paiement" as Paiement {
+  * id : UUID
+  * montant : Decimal
+  * date : DateTime
+  * moyen : String
+  * statut : String
+}
+entity "Siège" as Siege {
+  * id : UUID
+  * numero : Int
+  * disponible : Bool
+}
+entity "Incident" as Incident {
+  * id : UUID
+  * type : String
+  * description : String
+  * date : DateTime
+}
+entity "Notification" as Notification {
+  * id : UUID
+  * type : String
+  * contenu : String
+  * dateEnvoi : DateTime
+}
+
+entity "Administrateur" as Admin {
+  * id : UUID
+  * nom : String
+  * email : String
+}
+entity "Géolocalisation" as Geoloc {
+  * id : UUID
+  * latitude : Float
+  * longitude : Float
+  * date : DateTime
+}
+
+Conducteur ||--o{ Bus : "conduit"
+Bus ||--o{ Trajet : "effectue"
+Trajet ||--o{ Horaire : "a"
+Horaire ||--o{ Ticket : "réservé par"
+Utilisateur ||--o{ Ticket : "achète"
+Utilisateur ||--o{ Abonnement : "s'abonne"
+Ticket ||--|| Paiement : "est payé par"
+Abonnement ||--|| Paiement : "est payé par"
+Bus ||--o{ Siege : "contient"
+Ticket ||--|| Siege : "réserve"
+Utilisateur ||--o{ Notification : "reçoit"
+Trajet ||--o{ Notification : "génère"
+Bus ||--o{ Incident : "subit"
+Incident ||--|| Utilisateur : "signalé par"
+Bus ||--o{ Geoloc : "localisé par"
+Admin ||--o{ Trajet : "définit"
+Admin ||--o{ Horaire : "gère"
+Admin ||--o{ Bus : "assigne"
+Admin ||--o{ Conducteur : "assigne"
+@enduml
