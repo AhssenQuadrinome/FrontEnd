@@ -11,7 +11,7 @@ export const Slide = (): JSX.Element => {
   return (
     <>
       {/* Fixed transparent header above all content */}
-      <div className="fixed top-0 left-0 w-full z-50">
+  <div className="fixed top-0 left-0 w-full z-[100]">
         <HeroSection />
       </div>
       {/* Main content with white background, padding top for header height */}
@@ -64,11 +64,7 @@ export const Slide = (): JSX.Element => {
 
         <FooterSection />
 
-        <img
-          className="absolute top-[18px] left-8 md:left-16 lg:left-[146px] w-[90px] md:w-[90px] lg:w-[100px] h-auto object-cover"
-          alt="Chatgpt image oct"
-          src="/chatgpt-image-17-oct--2025--17-41-18-2.png"
-        />
+ 
       </div>
     </>
   );

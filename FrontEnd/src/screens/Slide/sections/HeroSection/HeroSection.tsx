@@ -1,5 +1,5 @@
 import { ChevronDownIcon, MenuIcon, XIcon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../../../../components/ui/button";
 
 const navigationItems = [
@@ -10,10 +10,27 @@ const navigationItems = [
 
 export const HeroSection = (): JSX.Element => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <header className="flex items-center justify-between gap-4 px-4 md:px-8 py-6 w-full relative z-50 bg-transparent">
-
+    <header className={
+      `flex items-center justify-between gap-4 px-4 md:px-8 py-6 w-full relative z-[100] transition-colors duration-300 ` +
+      ((isScrolled || mobileMenuOpen)
+        ? "bg-[rgba(255,255,255,0.06)] backdrop-blur-lg backdrop-saturate-125 border border-[rgba(255,255,255,0.08)] shadow-sm"
+        : "bg-transparent")
+    }>
+       <img
+          className="absolute top-[18px] left-8 md:left-16 lg:left-[146px] w-[90px] md:w-[90px] lg:w-[100px] h-auto object-cover"
+          alt="Chatgpt image oct"
+          src="/chatgpt-image-17-oct--2025--17-41-18-2.png"
+        />
 
       <nav className="hidden lg:flex items-center gap-6 xl:gap-12 flex-1 justify-center bg-transparent">
         {navigationItems.map((item) => (
