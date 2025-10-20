@@ -13,11 +13,7 @@ export const HeroSection = (): JSX.Element => {
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 md:px-8 py-6 w-full relative z-50 bg-transparent">
-      <img
-        className="w-[80px] h-[50px] md:w-[132px] md:h-[82px] flex-shrink-0"
-        alt="Chatgpt image oct"
-        src="/chatgpt-image-17-oct--2025--22-51-58-1.png"
-      />
+
 
       <nav className="hidden lg:flex items-center gap-6 xl:gap-12 flex-1 justify-center bg-transparent">
         {navigationItems.map((item) => (

@@ -4,18 +4,15 @@ export const MainHeroSection = (): JSX.Element => {
   return (
     <section className="relative w-full h-[600px] md:h-[800px] lg:h-[961px] overflow-hidden">
       <img
-        className="absolute top-[-300px] right-[-100px] w-full h-full object-contain object-right-top z-10"
+        className="absolute top-[-200px] right-[-100px] w-full"
+       
         alt="Decore"
         src="/decore-2.png"
       />
 
-      <img
-        className="absolute bottom-0 right-[5%] md:right-[10%] lg:right-[15%] w-[200px] md:w-[350px] lg:w-[500px] h-auto object-contain z-20"
-        alt="Bus"
-        src="/chatgpt-image-17-oct--2025--17-41-18-2.png"
-      />
 
-      <div className="relative flex items-center justify-start w-full h-full px-4 md:px-8 lg:px-16 z-30">
+
+      <div className="relative top-[-100px] flex items-center justify-start w-full h-full px-4 md:px-8 lg:px-16 z-30">
         <div className="flex flex-col items-start max-w-full md:max-w-[700px] lg:max-w-[988px] w-full">
           <div className="[font-family:'Poppins',Helvetica] font-bold text-[#df6951] text-sm md:text-lg lg:text-[26.6px] tracking-[0] leading-normal mb-4 md:mb-8 lg:mb-[42px]">
             BEST BUS MANAGEMENT SYSTEM
