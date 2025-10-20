@@ -5,30 +5,26 @@ const teamMembers = [
   {
     name: "Hiba ELOUERKHAOUI",
     description:
-      "A versatile software engineer whose calm precision and strong theoretical grounding bring balance to the entire team.",
-    icon: "/group-126669.png",
-    iconClasses: "w-[23.49%] h-[23.12%] top-[74.38%] left-[7.94%]",
+      "A well-rounded software engineer with a solid theoretical foundation in nearly every domain. Her unique mix of calmness and efficiency brings harmony to the team — she’s the balance that keeps everything running smoothly. (Empathy)",
+    linkedin: "https://www.linkedin.com/in/hiba-el-ouerkhaoui-2b723429a/"
   },
   {
     name: "Abderrahmane ESSAHIH",
     description:
-      "The embodiment of DevSecOps, blending security, infrastructure, and reliability into the backbone of our workflow.",
-    icon: "/arrow.png",
-    iconClasses: "w-[18.59%] h-[12.46%] top-[86.20%] left-[16.58%]",
+      "In a single word: DevSecOps. He embodies the essence of infrastructure engineering — reliable, security-focused, and always ready to get his hands dirty in the depths of systems and pipelines. (Logic)",
+    linkedin: "https://www.linkedin.com/in/abderrahmane-essahih-263259298/"
   },
   {
     name: "ZAKARIA OUMGHAR",
     description:
-      "The frontend lead obsessed with perfect layouts, often found arguing with Meryem about whether the API or the CSS is to blame.",
-    icon: "/arrow-1.png",
-    iconClasses: "w-[18.55%] h-[12.46%] top-[86.20%] left-[16.82%]",
+      "The frontend lead and the aesthetic perfectionist of the group — he’d rather spend hours aligning a single div than debugging a Java file. Beyond his code, he’s the team’s atmosphere setter, the one who keeps spirits high and the vibe cool. (Frost)",
+    linkedin: "https://www.linkedin.com/in/zakaria-oumghar-gl/"
   },
   {
     name: "Meryem ELFADILI",
     description:
-      "The Spring Boot and microservices expert who always wins half the arguments with Zakaria — mostly because her backend actually works.",
-    icon: "/arrow-2.png",
-    iconClasses: "w-[18.55%] h-[12.46%] top-[86.20%] left-[16.82%]",
+      "When it comes to microservices and Spring Boot, she’s the go-to expert. She has all the traits of a natural leader — sharp, diligent, and insightful — though her modesty keeps her power quietly radiant. (Temper)",
+    linkedin: "https://www.linkedin.com/in/meryem-elfadili/"
   },
 ];
 
@@ -39,25 +35,36 @@ export const InfoCardsSection = (): JSX.Element => {
         {teamMembers.map((member, index) => (
           <Card
             key={index}
-            className="relative w-full max-w-[398px] h-[500px] md:h-[550px] lg:h-[594px] bg-transparent border-0 mx-auto"
+            className="relative w-full max-w-[398px] h-[340px] md:h-[380px] lg:h-[420px] bg-[#A74338] border-0 mx-auto"
+            style={{
+              clipPath: "polygon(0 0, 100% 0, 100% 90%, 0 100%)",
+              transform: "skewY(-6deg)"
+            }}
           >
-            <CardContent className="relative w-[79.15%] h-[53.87%] top-[46.13%] left-[10.30%] bg-[url(/rectangle-1586.svg)] bg-[100%_100%] p-0">
-              <img
-                className={`absolute ${member.iconClasses}`}
-                alt={`${member.name} icon`}
-                src={member.icon}
-              />
-
-              <div className="flex flex-col w-[84.76%] items-start gap-2 absolute h-[52.81%] top-[23.59%] left-[7.62%]">
-                <h3 className="relative flex items-center justify-center w-fit mt-[-1.00px] [font-family:'Inter',Helvetica] font-bold text-[#ffffff] text-lg md:text-xl lg:text-[23px] tracking-[-0.46px] leading-[normal]">
+            <div className="flex flex-col justify-between h-full p-8">
+              <div>
+                <h3 className="[font-family:'Inter',Helvetica] font-bold text-white text-lg md:text-xl lg:text-[23px] tracking-[-0.46px] leading-[normal] mb-2">
                   {member.name}
                 </h3>
-
-                <p className="relative w-full max-w-[269px] [font-family:'Happy_Monkey',Helvetica] font-normal text-[#ffffff] text-sm md:text-base lg:text-[17px] tracking-[-0.34px] leading-[21.2px]">
+                <p className="[font-family:'Happy_Monkey',Helvetica] font-normal text-white text-sm md:text-base lg:text-[17px] tracking-[-0.34px] leading-[21.2px] mb-6">
                   {member.description}
                 </p>
               </div>
-            </CardContent>
+              <div className="flex items-end justify-end">
+                <a
+                  href={member.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-white text-[#A74338] font-bold px-4 py-2 rounded-lg shadow-2xl hover:bg-[#f5f5f5] transition-transform duration-300"
+                  style={{ transform: "skewY(6deg) translateY(-18px)" }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-9h3v9zm-1.5-10.268c-.966 0-1.75-.784-1.75-1.75s.784-1.75 1.75-1.75 1.75.784 1.75 1.75-.784 1.75-1.75 1.75zm13.5 10.268h-3v-4.604c0-1.099-.021-2.513-1.532-2.513-1.532 0-1.767 1.197-1.767 2.435v4.682h-3v-9h2.881v1.233h.041c.401-.761 1.379-1.563 2.838-1.563 3.036 0 3.597 2.001 3.597 4.601v4.729z"/>
+                  </svg>
+                  LinkedIn
+                </a>
+              </div>
+            </div>
           </Card>
         ))}
       </div>
