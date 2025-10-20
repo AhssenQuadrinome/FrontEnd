@@ -20,9 +20,9 @@ export const Slide = (): JSX.Element => {
 
         <BookingFormSection />
 
-        <div className="relative w-full px-4 md:px-8">
+        <div className="relative w-full px-4 md:px-8 mt-[400px]">
           <img
-            className="absolute top-0 left-0 w-[400px] md:w-[600px] lg:w-[771px] h-auto object-cover"
+            className="absolute top-[200px] left-[-100px] w-[400px] md:w-[600px] lg:w-[771px] h-auto object-cover"
             alt="Chatgpt image oct"
             src="/chatgpt-image-18-oct--2025--12-23-46-4.png"
           />

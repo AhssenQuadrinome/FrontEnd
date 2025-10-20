@@ -4,7 +4,7 @@ export const MainHeroSection = (): JSX.Element => {
   return (
     <section className="relative w-full h-[600px] md:h-[800px] lg:h-[961px] overflow-hidden">
       <img
-        className="absolute top-[-200px] right-[-100px] w-full"
+        className="absolute top-[-150px] right-[-50px] w-full z-50"
        
         alt="Decore"
         src="/decore-2.png"
@@ -12,7 +12,7 @@ export const MainHeroSection = (): JSX.Element => {
 
 
 
-      <div className="relative top-[-100px] flex items-center justify-start w-full h-full px-4 md:px-8 lg:px-16 z-30">
+      <div className="relative top-[-150px] flex items-center justify-start w-full h-full px-4 md:px-8 lg:px-16 z-[60]">
         <div className="flex flex-col items-start max-w-full md:max-w-[700px] lg:max-w-[988px] w-full">
           <div className="[font-family:'Poppins',Helvetica] font-bold text-[#df6951] text-sm md:text-lg lg:text-[26.6px] tracking-[0] leading-normal mb-4 md:mb-8 lg:mb-[42px]">
             BEST BUS MANAGEMENT SYSTEM
@@ -26,7 +26,7 @@ export const MainHeroSection = (): JSX.Element => {
             </h1>
 
             <img
-              className="absolute -bottom-[10px] md:-bottom-[16px] lg:-bottom-[28px] left-[40%] md:left-[45%] lg:left-[391px] w-[200px] md:w-[350px] lg:w-[594px] h-2 md:h-3 lg:h-4"
+              className="absolute -bottom-[-100px] md:-bottom-[-100px] lg:-bottom-[-110px] left-[40%] md:left-[45%] lg:left-[391px] w-[200px] md:w-[350px] lg:w-[594px] h-2 md:h-3 lg:h-4"
               alt="Decore"
               src="/decore-3.png"
             />

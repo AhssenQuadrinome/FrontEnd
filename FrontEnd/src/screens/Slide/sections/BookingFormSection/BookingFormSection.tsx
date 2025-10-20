@@ -29,7 +29,7 @@ export const BookingFormSection = (): JSX.Element => {
         src="/group-604.png"
       />
 
-      <div className="relative flex mt-10 ml-[170px] justify-start pt-12 md:pt-16 lg:pt-[101px] pb-24 md:pb-32 lg:pb-[200px]">
+      <div className="relative flex mt-2 ml-[170px] justify-start pt-12 md:pt-16 lg:pt-[101px] pb-24 md:pb-32 lg:pb-[200px]">
         <form
           onSubmit={handleSubmit}
           className="w-full max-w-[320px] md:max-w-[372px] h-auto flex bg-[#00000000] rounded-[30px] border border-solid border-[#ffffff] backdrop-blur-[2.0px] backdrop-brightness-[110%] [-webkit-backdrop-filter:blur(2.0px)_brightness(110%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.40),inset_1px_0_0_rgba(255,255,255,0.32),inset_0_-1px_1px_rgba(0,0,0,0.13),inset_-1px_0_1px_rgba(0,0,0,0.11)]"
