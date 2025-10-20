@@ -1,0 +1,13 @@
+@startuml auth_login_sequence
+actor Utilisateur
+participant "API Gateway" as APIGW
+participant "User Service" as UserSvc
+participant "Notification Service" as NotifSvc
+Utilisateur -> APIGW : Se connecte (email, mot de passe)
+APIGW -> UserSvc : Vérifier identifiants
+UserSvc -> UserSvc : Vérification
+UserSvc -> APIGW : JWT tokens
+APIGW -> Utilisateur : Tokens
+UserSvc -> NotifSvc : Notification connexion
+NotifSvc -> Utilisateur : Email/SMS connexion
+@enduml

@@ -1,0 +1,14 @@
+@startuml auth_registration_sequence
+actor Utilisateur
+participant "API Gateway" as APIGW
+participant "User Service" as UserSvc
+participant "Notification Service" as NotifSvc
+Utilisateur -> APIGW : S'inscrit (email, mot de passe)
+APIGW -> UserSvc : Créer utilisateur
+UserSvc -> UserSvc : Hachage mot de passe
+UserSvc -> UserSvc : Enregistrer utilisateur
+UserSvc -> NotifSvc : Envoyer email de vérification
+NotifSvc -> Utilisateur : Email de vérification
+UserSvc -> APIGW : Succès/échec
+APIGW -> Utilisateur : Confirmation inscription
+@enduml

@@ -1,0 +1,12 @@
+@startuml ticket_seat_selection_sequence
+actor Utilisateur
+participant "API Gateway" as APIGW
+participant "Ticket Service" as TicketSvc
+participant "Bus Service" as BusSvc
+Utilisateur -> APIGW : Demande réservation
+APIGW -> TicketSvc : Réserver une place
+TicketSvc -> BusSvc : Vérifier disponibilité (bus, horaire)
+BusSvc -> TicketSvc : Places disponibles ?
+TicketSvc -> APIGW : Confirmation réservation
+APIGW -> Utilisateur : Réservation confirmée
+@enduml

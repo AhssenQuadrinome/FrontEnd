@@ -1,0 +1,12 @@
+@startuml ticket_route_search_sequence
+actor Utilisateur
+participant "API Gateway" as APIGW
+participant "Trajet Service" as TrajetSvc
+participant "Geoloc Service" as GeolocSvc
+Utilisateur -> APIGW : Recherche itinéraire
+APIGW -> TrajetSvc : Critères de recherche
+TrajetSvc -> GeolocSvc : Temps réel
+GeolocSvc -> TrajetSvc : Données géoloc
+TrajetSvc -> APIGW : Itinéraires disponibles
+APIGW -> Utilisateur : Résultats
+@enduml

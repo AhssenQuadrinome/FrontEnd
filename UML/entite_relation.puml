@@ -49,11 +49,6 @@ entity "Paiement" as Paiement {
   * moyen : String
   * statut : String
 }
-entity "Siège" as Siege {
-  * id : UUID
-  * numero : Int
-  * disponible : Bool
-}
 entity "Incident" as Incident {
   * id : UUID
   * type : String
@@ -87,8 +82,6 @@ Utilisateur ||--o{ Ticket : "achète"
 Utilisateur ||--o{ Abonnement : "s'abonne"
 Ticket ||--|| Paiement : "est payé par"
 Abonnement ||--|| Paiement : "est payé par"
-Bus ||--o{ Siege : "contient"
-Ticket ||--|| Siege : "réserve"
 Utilisateur ||--o{ Notification : "reçoit"
 Trajet ||--o{ Notification : "génère"
 Bus ||--o{ Incident : "subit"
