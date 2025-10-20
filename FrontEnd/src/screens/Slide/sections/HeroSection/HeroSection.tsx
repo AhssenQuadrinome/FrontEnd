@@ -3,14 +3,15 @@ import React, { useState, useEffect } from "react";
 import { Button } from "../../../../components/ui/button";
 
 const navigationItems = [
-  { label: "HOME", active: true },
-  { label: "ABOUT", active: false },
-  { label: "CONTACT", active: false },
+  { label: "HOME", id: "home" },
+  { label: "ABOUT", id: "about" },
+  { label: "CONTACT", id: "contact" },
 ];
 
 export const HeroSection = (): JSX.Element => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeId, setActiveId] = useState<string>(navigationItems[0].id);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
@@ -18,6 +19,36 @@ export const HeroSection = (): JSX.Element => {
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const headerOffset = 100;
+    const onSpy = () => {
+      let current = navigationItems[0].id;
+      for (const item of navigationItems) {
+        const el = document.getElementById(item.id);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.top - headerOffset <= 0) {
+          current = item.id;
+        }
+      }
+      setActiveId(current);
+    };
+    window.addEventListener("scroll", onSpy, { passive: true });
+    onSpy();
+    return () => window.removeEventListener("scroll", onSpy);
+  }, []);
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const headerOffset = 90; // adjust if header height changes
+    const bodyRect = document.body.getBoundingClientRect().top;
+    const elemRect = el.getBoundingClientRect().top;
+    const offsetPosition = elemRect - bodyRect - headerOffset;
+    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+    setActiveId(id);
+  };
 
   return (
     <header className={
@@ -36,9 +67,10 @@ export const HeroSection = (): JSX.Element => {
         {navigationItems.map((item) => (
           <Button
             key={item.label}
-            variant={item.active ? "default" : "outline"}
+            variant={item.id === activeId ? "default" : "outline"}
+            onClick={() => scrollToSection(item.id)}
             className={`h-auto rounded-full px-5 xl:px-7 py-2 ${
-              item.active
+              item.id === activeId
                 ? "bg-[#a54033] hover:bg-[#a54033]/90 text-white border-none"
                 : "border-[#a54033] text-[#a54033] bg-transparent hover:bg-[#a54033]/10"
             }`}
@@ -94,9 +126,13 @@ export const HeroSection = (): JSX.Element => {
             {navigationItems.map((item) => (
               <Button
                 key={item.label}
-                variant={item.active ? "default" : "outline"}
+                variant={item.id === activeId ? "default" : "outline"}
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  scrollToSection(item.id);
+                }}
                 className={`h-auto rounded-full px-7 py-2 w-full ${
-                  item.active
+                  item.id === activeId
                     ? "bg-[#a54033] hover:bg-[#a54033]/90 text-white border-none"
                     : "border-[#a54033] text-[#a54033] bg-transparent hover:bg-[#a54033]/10"
                 }`}

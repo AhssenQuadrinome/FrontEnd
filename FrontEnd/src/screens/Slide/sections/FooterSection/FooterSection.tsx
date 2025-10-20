@@ -1,10 +1,10 @@
 import React from "react";
 
 const linkItems = [
-  { text: "Home" },
-  { text: "Booking" },
-  { text: "About" },
-  { text: "Contact" },
+  { text: "Home", id: "home" },
+  { text: "Booking", id: "home" },
+  { text: "About", id: "about" },
+  { text: "Contact", id: "contact" },
 ];
 
 const teamMembers = [
@@ -15,6 +15,17 @@ const teamMembers = [
 ];
 
 export const FooterSection = (): JSX.Element => {
+  const scrollTo = (id?: string) => {
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    const headerOffset = 90;
+    const bodyRect = document.body.getBoundingClientRect().top;
+    const elemRect = el.getBoundingClientRect().top;
+    const offsetPosition = elemRect - bodyRect - headerOffset;
+    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+  };
+
   return (
     <footer className="relative w-full bg-[#df695126] py-[38px] px-[66px] mt-32 overflow-hidden">
       <div className="flex items-start gap-8 max-w-[1840px] mx-auto">
@@ -34,6 +45,12 @@ export const FooterSection = (): JSX.Element => {
               {linkItems.map((item, index) => (
                 <div
                   key={index}
+                  onClick={() => scrollTo(item.id)}
+                  role="link"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") scrollTo(item.id);
+                  }}
                   className="self-stretch [font-family:'Inter',Helvetica] font-normal text-[#212421] text-base tracking-[0] leading-4 cursor-pointer hover:text-[#a54033] transition-colors"
                 >
                   {item.text}

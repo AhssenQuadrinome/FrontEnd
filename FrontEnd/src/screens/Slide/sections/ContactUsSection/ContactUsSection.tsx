@@ -10,7 +10,7 @@ export function ContactUsSection(): JSX.Element {
   const [content, setContent] = useState("");
   const [focus, setFocus] = useState({ name: false, email: false, content: false });
   return (
-    <section className="relative w-full px-4 md:px-8 py-12">
+    <section id="contact" className="relative w-full px-4 md:px-8 py-12">
       <div className="relative w-full max-w-7xl mx-auto rounded-[30px] border-2 border-solid border-[#00000030] shadow-2xl bg-gradient-to-br from-[#fff8d4] to-[#fbeee6] overflow-visible">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 relative z-10 min-h-[520px]">
           {/* Left: Black Form Section */}

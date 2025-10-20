@@ -10,7 +10,7 @@ const statsData = [
 
 export const AboutUsSection = (): JSX.Element => {
   return (
-    <section className="w-full relative px-4 md:px-8 py-8 mt-10 ">
+    <section id="about" className="w-full relative px-4 md:px-8 py-8 mt-10 ">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 max-w-7xl mx-auto">
         <Card className="bg-[#00000000] rounded-[30px] border-0 backdrop-blur-[2.0px] backdrop-brightness-[110%] [-webkit-backdrop-filter:blur(2.0px)_brightness(110%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.40),inset_1px_0_0_rgba(255,255,255,0.32),inset_0_-1px_1px_rgba(0,0,0,0.13),inset_-1px_0_1px_rgba(0,0,0,0.11)] max-w-3xl">
           <CardContent className="p-0 max-w-3xl">

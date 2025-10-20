@@ -2,7 +2,7 @@ import React from "react";
 
 export const MainHeroSection = (): JSX.Element => {
   return (
-    <section className="relative w-full h-[600px] md:h-[800px] lg:h-[961px] overflow-hidden">
+    <section id="home" className="relative w-full h-[600px] md:h-[800px] lg:h-[961px] overflow-hidden">
       <img
         className="absolute top-[-150px] right-[-50px] w-full z-50"
        
