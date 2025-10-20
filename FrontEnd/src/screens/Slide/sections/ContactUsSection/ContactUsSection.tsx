@@ -1,120 +1,124 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "../../../../components/ui/button";
 import { Checkbox } from "../../../../components/ui/checkbox";
 import { Input } from "../../../../components/ui/input";
 import { Label } from "../../../../components/ui/label";
 import { Textarea } from "../../../../components/ui/textarea";
-
-export const ContactUsSection = (): JSX.Element => {
+export function ContactUsSection(): JSX.Element {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [content, setContent] = useState("");
+  const [focus, setFocus] = useState({ name: false, email: false, content: false });
   return (
-    <section className="relative w-full px-4 md:px-8 py-8">
-      <div className="relative w-full max-w-7xl mx-auto bg-[#fff8d4] rounded-[30px] overflow-hidden border-2 border-solid border-[#00000040] shadow-[0px_8px_10px_#de6e4b40]">
-        <div className="absolute -top-36 left-[-122px] w-[1200px] h-[853px] pointer-events-none hidden lg:block">
-          <div className="absolute top-0 left-0 w-[613px] h-[811px] bg-app-background" />
-          <div className="absolute top-[230px] left-[168px] w-[107px] h-[5px] bg-primary-color" />
-          <div className="absolute top-[745px] left-[1077px] w-[123px] h-[108px] bg-primary-color rounded-[61.33px/53.93px]" />
-          <div className="absolute top-[718px] left-[1076px] w-[63px] h-[54px] bg-[#de6e4b66] rounded-[31.74px/26.77px]" />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
-          <div className="p-6 md:p-8 lg:p-10 flex flex-col">
-            <h2 className="[font-family:'Poppins',Helvetica] font-semibold text-[#ffffff] text-3xl md:text-4xl lg:text-[52px] tracking-[0] leading-[normal] mb-7">
+    <section className="relative w-full px-4 md:px-8 py-12">
+      <div className="relative w-full max-w-7xl mx-auto rounded-[30px] border-2 border-solid border-[#00000030] shadow-2xl bg-gradient-to-br from-[#fff8d4] to-[#fbeee6] overflow-visible">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 relative z-10 min-h-[520px]">
+          {/* Left: Black Form Section */}
+          <div className="flex flex-col justify-center p-6 md:p-10 lg:p-14 bg-[#232323] rounded-l-[30px] min-h-[420px]">
+            <h2 className="[font-family:'Poppins',Helvetica] font-semibold text-white text-3xl md:text-4xl lg:text-[44px] tracking-[0] leading-[normal] mb-7">
               GET IN TOUCH
             </h2>
-
             <form className="flex flex-col gap-7">
-              <div className="relative">
+              <div className="relative mt-2">
+                <Input
+                  id="name"
+                  required
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  onFocus={() => setFocus(f => ({ ...f, name: true }))}
+                  onBlur={() => setFocus(f => ({ ...f, name: false }))}
+                  className="bg-transparent border-0 border-b-2 border-[#fff8d4] rounded-none pt-6 pb-2 px-2 text-white [font-family:'Poppins',Helvetica] focus-visible:ring-0 focus-visible:ring-offset-0 placeholder-transparent"
+                  placeholder=" "
+                />
                 <Label
                   htmlFor="name"
-                  className="absolute top-0 left-2 [font-family:'Poppins',Helvetica] font-normal text-[#ffffff] text-base tracking-[0] leading-[normal]"
+                  className={`absolute left-2 text-[#fff8d4] text-base font-medium transition-all duration-200 [font-family:'Poppins',Helvetica] pointer-events-none ${focus.name || name ? '-top-4 text-sm text-[#fff8d4]' : 'top-1 text-base text-[#888]'}`}
                 >
                   Name
                 </Label>
-                <Input
-                  id="name"
-                  className="bg-app-background border-0 border-b border-solid border-[#ffffff] rounded-none pt-8 pb-2 px-2 text-[#ffffff] [font-family:'Poppins',Helvetica] focus-visible:ring-0 focus-visible:ring-offset-0"
-                />
               </div>
-
-              <div className="relative">
-                <Label
-                  htmlFor="email"
-                  className="absolute top-0 left-2 [font-family:'Poppins',Helvetica] font-normal text-[#ffffff] text-base tracking-[0] leading-[normal]"
-                >
-                  Email
-                </Label>
+              <div className="relative mt-2">
                 <Input
                   id="email"
                   type="email"
-                  className="bg-app-background border-0 border-b border-solid border-[#ffffff] rounded-none pt-8 pb-2 px-2 text-[#ffffff] [font-family:'Poppins',Helvetica] focus-visible:ring-0 focus-visible:ring-offset-0"
+                  required
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  onFocus={() => setFocus(f => ({ ...f, email: true }))}
+                  onBlur={() => setFocus(f => ({ ...f, email: false }))}
+                  className="bg-transparent border-0 border-b-2 border-[#fff8d4] rounded-none pt-6 pb-2 px-2 text-white [font-family:'Poppins',Helvetica] focus-visible:ring-0 focus-visible:ring-offset-0 placeholder-transparent"
+                  placeholder=" "
                 />
-              </div>
-
-              <div className="relative">
-                <Label
-                  htmlFor="content"
-                  className="absolute top-0 left-2 [font-family:'Poppins',Helvetica] font-normal text-[#ffffff] text-base tracking-[0] leading-[normal]"
-                >
-                  Content
+                    <Label
+                      htmlFor="email"
+                      className={`absolute left-2 text-[#fff8d4] text-base font-medium transition-all duration-200 [font-family:'Poppins',Helvetica] pointer-events-none ${focus.email || email ? '-top-4 text-sm text-[#fff8d4]' : 'top-1 text-base text-[#888]'}`}
+                    >
+                  Email
                 </Label>
+              </div>
+              <div className="relative mt-2">
                 <Textarea
                   id="content"
-                  className="bg-app-background border-0 border-b border-solid border-[#ffffff] rounded-none pt-8 pb-2 px-2 min-h-[150px] text-[#ffffff] [font-family:'Poppins',Helvetica] resize-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                  required
+                  value={content}
+                  onChange={e => setContent(e.target.value)}
+                  onFocus={() => setFocus(f => ({ ...f, content: true }))}
+                  onBlur={() => setFocus(f => ({ ...f, content: false }))}
+                  className="bg-transparent border-0 border-b-2 border-[#fff8d4] rounded-none pt-6 pb-2 px-2 min-h-[120px] text-white [font-family:'Poppins',Helvetica] resize-none focus-visible:ring-0 focus-visible:ring-offset-0 placeholder-transparent"
+                  placeholder=" "
                 />
+                    <Label
+                      htmlFor="content"
+                      className={`absolute left-2 text-[#fff8d4] text-base font-medium transition-all duration-200 [font-family:'Poppins',Helvetica] pointer-events-none ${focus.content || content ? '-top-4 text-sm text-[#fff8d4]' : 'top-1 text-base text-[#888]'}`}
+                    >
+                  Content
+                </Label>
               </div>
-
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 mt-2">
                 <Checkbox
                   id="newsletter"
-                  className="border-[#ffffff] data-[state=checked]:bg-[#ffffff] data-[state=checked]:text-app-background"
+                  className="border-[#fff8d4] data-[state=checked]:bg-[#fff8d4] data-[state=checked]:text-[#232323]"
                 />
                 <Label
                   htmlFor="newsletter"
-                  className="[font-family:'Poppins',Helvetica] font-normal text-[#ffffff] text-xs tracking-[0] leading-[normal] cursor-pointer"
+                  className="[font-family:'Poppins',Helvetica] font-normal text-[#fff8d4] text-xs tracking-[0] leading-[normal] cursor-pointer"
                 >
                   I would like to receive the newsletter.
                 </Label>
               </div>
-
-              <div className="relative w-fit mt-2">
-                <img
-                  className="w-[109px] h-[37px]"
-                  alt="Submit background"
-                  src="/submit-background.svg"
-                />
+              <div className="relative w-fit mt-4">
                 <Button
                   type="submit"
-                  className="absolute top-0 left-0 w-full h-full bg-transparent hover:bg-transparent border-0 [font-family:'Poppins',Helvetica] font-medium text-[#ffffff] text-xl tracking-[0] leading-[normal] h-auto"
+                  className="w-[120px] h-[44px] bg-[#de6e4b] hover:bg-[#a74338] text-white font-bold text-lg rounded-xl shadow-lg transition-all duration-200 [font-family:'Poppins',Helvetica]"
                 >
                   Submit
                 </Button>
               </div>
             </form>
           </div>
-
-          <div className="relative p-6 md:p-8 lg:p-10 flex items-center justify-center">
-            <div className="relative">
-              <img
-                className="w-full max-w-[350px] md:max-w-[450px] lg:max-w-[510px] h-auto rounded-[22px] object-cover"
-                alt="Maps"
-                src="/maps.png"
-              />
-              <img
-                className="absolute top-[35%] left-[36%] w-[63px] h-[42px] object-cover"
-                alt="Chatgpt image oct"
-                src="/chatgpt-image-18-oct--2025--12-23-46-4.png"
-              />
-              <img
-                className="absolute top-[67%] left-[63%] w-[57px] h-[39px] object-cover"
-                alt="Chatgpt image oct"
-                src="/chatgpt-image-18-oct--2025--12-23-46-4.png"
-              />
-              <img
-                className="absolute top-[13%] left-[79%] w-[57px] h-[39px] object-cover"
-                alt="Chatgpt image oct"
-                src="/chatgpt-image-18-oct--2025--12-23-46-4.png"
-              />
-            </div>
+          {/* Right: Map Section fills the card */}
+          <div className="relative flex items-center justify-center p-0 bg-[#fff8d4] rounded-r-[30px] overflow-hidden min-h-[420px]">
+            <img
+              className="absolute inset-0 w-full h-full object-cover object-center"
+              alt="Maps"
+              src="/maps.png"
+            />
+            {/* Bus icons on map */}
+            <img
+              className="absolute top-[35%] left-[36%] w-[48px] h-[32px] object-cover drop-shadow-xl"
+              alt="Bus icon"
+              src="/chatgpt-image-18-oct--2025--12-23-46-4.png"
+            />
+            <img
+              className="absolute top-[67%] left-[63%] w-[44px] h-[28px] object-cover drop-shadow-xl"
+              alt="Bus icon"
+              src="/chatgpt-image-18-oct--2025--12-23-46-4.png"
+            />
+            <img
+              className="absolute top-[13%] left-[79%] w-[44px] h-[28px] object-cover drop-shadow-xl"
+              alt="Bus icon"
+              src="/chatgpt-image-18-oct--2025--12-23-46-4.png"
+            />
           </div>
         </div>
       </div>

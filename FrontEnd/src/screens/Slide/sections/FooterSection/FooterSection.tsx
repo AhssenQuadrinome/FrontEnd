@@ -16,7 +16,7 @@ const teamMembers = [
 
 export const FooterSection = (): JSX.Element => {
   return (
-    <footer className="relative w-full bg-[#df695126] py-[38px] px-[66px]">
+    <footer className="relative w-full bg-[#df695126] py-[38px] px-[66px] mt-32 overflow-hidden">
       <div className="flex items-start gap-8 max-w-[1840px] mx-auto">
         <div className="flex items-center justify-center gap-4 flex-1">
           <div className="flex-1 [font-family:'Staatliches',Helvetica] font-normal text-[#a54033] text-[40px] tracking-[0] leading-6">
@@ -68,7 +68,7 @@ export const FooterSection = (): JSX.Element => {
       </div>
 
       <img
-        className="absolute top-0 left-0 w-[826px] h-[314px] object-cover pointer-events-none"
+        className="absolute bottom-[-50px] left-[-100px] w-[826px] h-[314px] object-cover pointer-events-none"
         alt="Chatgpt image oct"
         src="/chatgpt-image-17-oct--2025--17-41-18-2.png"
       />
