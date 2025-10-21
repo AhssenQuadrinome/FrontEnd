@@ -1,0 +1,79 @@
+spring:
+  profiles:
+    active: @spring.profiles.active@
+  application:
+    name: gateway
+  # ===================================================================
+  # General configuration
+  # ===================================================================
+  devtools:
+    restart:
+      enabled: false
+    livereload:
+      enabled: false
+  # ==================================================================
+  # Jackson configuration
+  # ==================================================================
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+  # ==================================================================
+  # Discovery configuration
+  # ==================================================================
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        instance-id: "${spring.application.name}"
+        prefer-ip-address: true
+        health-check-critical-timeout: "1m"
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+    # ===================================================================
+    # Routing configuration
+    # ===================================================================
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedHeaders: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+      routes:
+        - id: uaa
+          uri: lb://uaa
+          predicates:
+            - Path=/authMgtApi/**
+          filters:
+            - RewritePath=/authMgtApi/(?<path>.*), /$\{path}
+            - RemoveRequestHeader= Cookie,Set-Cookie
+
+# ===================================================================
+# Monitoring & Traceability configuration
+# ===================================================================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+
+

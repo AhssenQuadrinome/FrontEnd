@@ -1,0 +1,21 @@
+spring:
+  cloud:
+    # ==================================================================
+    # Discovery configuration
+    # ==================================================================
+    consul:
+      host: consul
+  # ===================================================================
+  # Datasource configuration
+  # ===================================================================
+  datasource:
+    url: jdbc:postgresql://db-gateway:5432/db-gateway
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: mysecretpassword
+  # ===================================================================
+  # RabbitMQ configuration
+  # ===================================================================
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
