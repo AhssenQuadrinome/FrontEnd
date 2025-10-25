@@ -1,8 +1,0 @@
-@startuml ticket_notification_sequence
-actor Utilisateur
-participant "API Gateway" as APIGW
-participant "Notification Service" as NotifSvc
-participant "Ticket Service" as TicketSvc
-TicketSvc -> NotifSvc : Générer notification
-NotifSvc -> Utilisateur : Email/SMS confirmation
-@enduml
