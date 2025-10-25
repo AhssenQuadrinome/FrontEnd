@@ -1,6 +1,7 @@
 import { ChevronDownIcon, MenuIcon, XIcon } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Button } from "../../../../components/ui/button";
+import { Link } from "react-router-dom";
 
 const navigationItems = [
   { label: "HOME", id: "home" },
@@ -83,19 +84,23 @@ export const HeroSection = (): JSX.Element => {
       </nav>
 
       <div className="hidden lg:flex items-center gap-3 xl:gap-6 flex-shrink-0">
-        <Button
-          variant="ghost"
-          className="h-auto p-0 hover:bg-transparent [-webkit-text-stroke:1.33px_#df6951] [font-family:'Poppins',Helvetica] font-medium text-[#f5b75c] text-base xl:text-[22.6px] tracking-[0] leading-normal"
-        >
-          Login
-        </Button>
+        <Link to="/login">
+          <Button
+            variant="ghost"
+            className="h-auto p-0 hover:bg-transparent [-webkit-text-stroke:1.33px_#df6951] [font-family:'Poppins',Helvetica] font-medium text-[#f5b75c] text-base xl:text-[22.6px] tracking-[0] leading-normal"
+          >
+            Login
+          </Button>
+        </Link>
 
-        <Button
-          variant="outline"
-          className="h-auto rounded-[6.65px] border-[1.33px] border-[#df6951] px-4 xl:px-6 py-2 xl:py-3 bg-transparent hover:bg-[#df6951]/10 [-webkit-text-stroke:1.33px_#df6951] [font-family:'Poppins',Helvetica] font-medium text-[#f5b75c] text-base xl:text-[22.6px] tracking-[0] leading-normal"
-        >
-          Sign up
-        </Button>
+        <Link to="/signup">
+          <Button
+            variant="outline"
+            className="h-auto rounded-[6.65px] border-[1.33px] border-[#df6951] px-4 xl:px-6 py-2 xl:py-3 bg-transparent hover:bg-[#df6951]/10 [-webkit-text-stroke:1.33px_#df6951] [font-family:'Poppins',Helvetica] font-medium text-[#f5b75c] text-base xl:text-[22.6px] tracking-[0] leading-normal"
+          >
+            Sign up
+          </Button>
+        </Link>
 
         <Button
           variant="ghost"
