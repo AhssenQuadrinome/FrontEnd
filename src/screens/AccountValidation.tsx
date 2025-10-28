@@ -6,8 +6,11 @@ export default function AccountValidation() {
   const [token, setToken] = useState('');
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
+  const hasRunRef = React.useRef(false);
 
   useEffect(() => {
+    if (hasRunRef.current) return;
+    hasRunRef.current = true;
     // Support both hash and search params for token
     let t = '';
     if (window.location.search) {
@@ -21,22 +24,38 @@ export default function AccountValidation() {
       setToken(t);
       (async () => {
         try {
-              const res = await fetch(validateEndpoint, {
+            const res = await fetch(validateEndpoint, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ activationKey: t }),
-              });
-          if (res.ok) {
-            setStatus('success');
-            setMessage('Your account has been activated successfully!');
-          } else {
-            const data = await res.json();
-            setStatus('error');
-            setMessage(data.message || 'Activation failed.');
-          }
+            });
+            if (res.status === 204) {
+                // No Content, treat as success
+                setStatus('success');
+                setMessage('Your account has been activated successfully!');
+                console.log('Activation succeeded: No Content (204)');
+            } else {
+                // Print the raw response for debugging
+                const rawText = await res.text();
+                console.log('Raw backend response:', rawText);
+                let data: { message?: string } = {};
+                try {
+                    data = JSON.parse(rawText);
+                } catch (e) {
+                    console.warn('Response is not valid JSON:', e);
+                }
+                if (res.ok) {
+                    setStatus('success');
+                    setMessage('Your account has been activated successfully!');
+                } else {
+                    setStatus('error');
+                    setMessage(data.message ? data.message : rawText || 'Activation failed.');
+                }
+            }
         } catch (err) {
-          setStatus('error');
-          setMessage('Network error.');
+            console.log('Network error:', err);
+            setStatus('error');
+            setMessage('Network error.');
         }
       })();
     } else {
