@@ -17,14 +17,22 @@ const Login = (): JSX.Element => {
     setError(null);
     setLoading(true);
     try {
-  const res = await fetch("http://localhost:8080/authMgtApi/login", {
+      const res = await fetch("http://localhost:8080/authMgtApi/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
       if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || res.statusText);
+        let errorMsg = res.statusText;
+        let rawText = await res.text();
+        try {
+          const data = JSON.parse(rawText);
+          errorMsg = data.message || errorMsg;
+        } catch {}
+        if (res.status === 401) {
+          errorMsg = "The username or password are incorrect.";
+        }
+        throw new Error(errorMsg);
       }
       const data = await res.json();
       if (data?.access_token) {
