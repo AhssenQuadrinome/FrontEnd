@@ -18,7 +18,7 @@ export type UserRole = "admin" | "driver" | "controller" | "passenger";
 const mockUser: User = {
 	id: "4",
 	name: "Admin User",
-	email: "admin@mybus.com",
+	email: "ourbusway2025@outlook.com",
 	role: "admin",
 };
 

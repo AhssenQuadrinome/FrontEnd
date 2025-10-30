@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 const mockUser: User = {
   id: '4',
   name: 'Admin User',
-  email: 'admin@mybus.com',
+  email: 'ourbusway2025@outlook.com',
   role: 'admin',
 };
 
@@ -66,53 +66,93 @@ export default function OverviewPage() {
       <div className="space-y-6">
         <h3 className="text-2xl font-bold text-gray-900">System Overview</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="flex items-center gap-1 text-green-600 text-sm font-medium">
-                <TrendingUp className="w-4 h-4" />
-                12%
+          {/* Users Card - brown gradient */}
+          <div className="relative group transition-transform duration-200 hover:-translate-y-1 hover:scale-105">
+            <div className="rounded-2xl shadow-lg p-6 overflow-hidden hover:shadow-2xl transition-all duration-300 bg-white/30 backdrop-blur-md border border-[#A54033]/40">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#A54033]/90 via-[#A54033]/60 to-[#A54033]/40 animate-[shimmer_2.5s_linear_infinite]" style={{maskImage:'linear-gradient(120deg,transparent 0%,#fff3 50%,transparent 100%)'}} />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 bg-gradient-to-br from-[#A54033] to-[#A54033] rounded-2xl flex items-center justify-center shadow-lg" style={{boxShadow:'0 0 24px 0 #A5403355'}}>
+                      <Users className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
+                    <TrendingUp className="w-4 h-4" />
+                    12%
+                  </div>
+                </div>
+                <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#A54033] bg-clip-text text-transparent mb-1">
+                  2,847
+                </p>
+                <p className="text-sm text-[#A54033] font-medium">Total Users</p>
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">2,847</p>
-            <p className="text-sm text-gray-600">Total Users</p>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                <Ticket className="w-6 h-6 text-orange-600" />
-              </div>
-              <div className="flex items-center gap-1 text-green-600 text-sm font-medium">
-                <TrendingUp className="w-4 h-4" />
-                8%
+          {/* Tickets Card - navy gradient */}
+          <div className="relative group transition-transform duration-200 hover:-translate-y-1 hover:scale-105">
+            <div className="rounded-2xl shadow-lg p-6 overflow-hidden hover:shadow-2xl transition-all duration-300 bg-white/30 backdrop-blur-md border border-[#A54033]/40">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#A54033]/90 via-[#A54033]/60 to-[#A54033]/40 animate-[shimmer_2.5s_linear_infinite]" style={{maskImage:'linear-gradient(120deg,transparent 0%,#fff3 50%,transparent 100%)'}} />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 bg-gradient-to-br from-[#A54033] to-[#A54033] rounded-2xl flex items-center justify-center shadow-lg" style={{boxShadow:'0 0 24px 0 #A5403355'}}>
+                      <Ticket className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
+                    <TrendingUp className="w-4 h-4" />
+                    8%
+                  </div>
+                </div>
+                <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#A54033] bg-clip-text text-transparent mb-1">
+                  1,234
+                </p>
+                <p className="text-sm text-[#A54033] font-medium">Tickets Sold Today</p>
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">1,234</p>
-            <p className="text-sm text-gray-600">Tickets Sold Today</p>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Bus className="w-6 h-6 text-green-600" />
+          {/* Buses Card - brown gradient */}
+          <div className="relative group transition-transform duration-200 hover:-translate-y-1 hover:scale-105">
+            <div className="rounded-2xl shadow-lg p-6 overflow-hidden hover:shadow-2xl transition-all duration-300 bg-white/30 backdrop-blur-md border border-[#A54033]/40">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#A54033]/90 via-[#A54033]/60 to-[#A54033]/40 animate-[shimmer_2.5s_linear_infinite]" style={{maskImage:'linear-gradient(120deg,transparent 0%,#fff3 50%,transparent 100%)'}} />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 bg-gradient-to-br from-[#A54033] to-[#A54033] rounded-2xl flex items-center justify-center shadow-lg" style={{boxShadow:'0 0 24px 0 #A5403355'}}>
+                      <Bus className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#A54033] bg-clip-text text-transparent mb-1">
+                  24/26
+                </p>
+                <p className="text-sm text-[#A54033] font-medium">Buses Active</p>
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">24/26</p>
-            <p className="text-sm text-gray-600">Buses Active</p>
           </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-emerald-600" />
-              </div>
-              <div className="flex items-center gap-1 text-green-600 text-sm font-medium">
-                <TrendingUp className="w-4 h-4" />
-                15%
+          {/* Revenue Card - navy gradient */}
+          <div className="relative group transition-transform duration-200 hover:-translate-y-1 hover:scale-105">
+            <div className="rounded-2xl shadow-lg p-6 overflow-hidden hover:shadow-2xl transition-all duration-300 bg-white/30 backdrop-blur-md border border-[#A54033]/40">
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#A54033]/90 via-[#A54033]/60 to-[#A54033]/40 animate-[shimmer_2.5s_linear_infinite]" style={{maskImage:'linear-gradient(120deg,transparent 0%,#fff3 50%,transparent 100%)'}} />
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 bg-gradient-to-br from-[#A54033] to-[#A54033] rounded-2xl flex items-center justify-center shadow-lg" style={{boxShadow:'0 0 24px 0 #A5403355'}}>
+                      <DollarSign className="w-7 h-7 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
+                    <TrendingUp className="w-4 h-4" />
+                    15%
+                  </div>
+                </div>
+                <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#A54033] bg-clip-text text-transparent mb-1">
+                  $12.4K
+                </p>
+                <p className="text-sm text-[#A54033] font-medium">Revenue Today</p>
               </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-1">$12.4K</p>
-            <p className="text-sm text-gray-600">Revenue Today</p>
           </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -122,7 +162,7 @@ export default function OverviewPage() {
               {mockRoutes.map((route) => (
                 <div key={route.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#A54033] to-[#8B2F24] rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
                       {route.number}
                     </div>
                     <div>
@@ -130,7 +170,7 @@ export default function OverviewPage() {
                       <p className="text-sm text-gray-600">{route.stations} stations • {route.buses} buses</p>
                     </div>
                   </div>
-                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-semibold">
+                  <span className="px-3 py-1 bg-[#181E4B]/10 text-[#181E4B] rounded-full text-xs font-semibold">
                     Active
                   </span>
                 </div>
@@ -140,14 +180,14 @@ export default function OverviewPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-bold text-gray-900">Recent Incidents</h4>
-              <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold">
+              <span className="px-3 py-1 bg-[#181E4B]/10 text-[#181E4B] rounded-full text-xs font-semibold">
                 {mockIncidents.filter(i => i.status === 'open').length} Open
               </span>
             </div>
             <div className="space-y-3">
               {mockIncidents.map((incident) => (
                 <div key={incident.id} className={`p-4 rounded-lg border ${
-                  incident.status === 'open' ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'
+                  incident.status === 'open' ? 'bg-[#181E4B]/5 border-[#181E4B]/30' : 'bg-gray-50 border-gray-200'
                 }`}>
                   <div className="flex items-start gap-3">
                     <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
@@ -158,7 +198,7 @@ export default function OverviewPage() {
                       <div className="flex items-center justify-between mb-1">
                         <p className="font-semibold text-gray-900 capitalize">{incident.type}</p>
                         <span className={`text-xs font-medium ${
-                          incident.status === 'open' ? 'text-red-600' : 'text-green-600'
+                          incident.status === 'open' ? 'text-red-600' : 'text-[#181E4B]'
                         }`}>
                           {incident.status.toUpperCase()}
                         </span>
