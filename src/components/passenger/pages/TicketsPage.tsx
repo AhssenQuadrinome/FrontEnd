@@ -208,7 +208,7 @@ export default function TicketsPage() {
         </div>
         {/* QR Code Modal */}
         {showQRModal && selectedTicket && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-0 m-0 bg-black/50 min-h-screen w-screen top-[-225px] left-0" style={{top: "-25px"}}>
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-navy mb-2">Ticket QR Code</h3>
