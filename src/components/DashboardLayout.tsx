@@ -1,16 +1,11 @@
 import { ReactNode } from 'react';
-import { LogOut, Menu, X, Bell } from 'lucide-react';
+import { LogOut, Menu, X, Bell, Ticket, TrendingUp, Map, User as UserIcon } from 'lucide-react';
+import { Link, useLocation } from 'react-router-dom';
 import { User } from '../types';
 
 interface DashboardLayoutProps {
   children: ReactNode;
   user: User;
-  navigation: Array<{
-    name: string;
-    icon: ReactNode;
-    active?: boolean;
-    onClick: () => void;
-  }>;
   notificationCount?: number;
   onNotificationClick?: () => void;
   mobileMenuOpen?: boolean;
@@ -20,12 +15,30 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({
   children,
   user,
-  navigation,
   notificationCount = 0,
   onNotificationClick,
   mobileMenuOpen = false,
   onMobileMenuToggle,
 }: DashboardLayoutProps) {
+  const location = useLocation();
+  const passengerNavigation = [
+    { name: 'My Tickets', icon: <Ticket />, path: '/passenger/tickets' },
+    { name: 'Buy Ticket', icon: <Ticket />, path: '/passenger/buy-ticket' },
+    { name: 'Subscription', icon: <TrendingUp />, path: '/passenger/subscription' },
+    { name: 'Routes & Trips', icon: <Map />, path: '/passenger/trips' },
+    { name: 'Profile', icon: <UserIcon />, path: '/passenger/profile' },
+    { name: 'Notifications', icon: <Bell />, path: '/passenger/notifications' },
+  ];
+  const adminNavigation = [
+    { name: 'Overview', icon: <TrendingUp />, path: '/admin/overview' },
+    { name: 'Users', icon: <UserIcon />, path: '/admin/users' },
+    { name: 'Tickets', icon: <Ticket />, path: '/admin/tickets' },
+    { name: 'Routes', icon: <Map />, path: '/admin/routes' },
+    { name: 'Geolocation', icon: <Map />, path: '/admin/geolocation' },
+    { name: 'Incidents', icon: <Bell />, path: '/admin/incidents' },
+    { name: 'Notifications', icon: <Bell />, path: '/admin/notifications' },
+  ];
+  const navigation = user.role === 'admin' ? adminNavigation : passengerNavigation;
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-orange-50/20">
       {/* Header */}
@@ -102,21 +115,19 @@ export default function DashboardLayout({
 
             <nav className="flex-1 px-3 py-4 flex flex-col items-center justify-center space-y-1">
               {navigation.map((item, index) => (
-                <button
+                <Link
                   key={index}
-                  onClick={() => {
-                    item.onClick();
-                    onMobileMenuToggle?.();
-                  }}
+                  to={item.path}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-300 ${
-                    item.active
+                    location.pathname === item.path
                       ? 'bg-gradient-to-r from-[#A54033] to-[#8B2F24] text-white shadow-md'
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
+                  onClick={onMobileMenuToggle}
                 >
                   <span className="w-5 h-5">{item.icon}</span>
                   <span>{item.name}</span>
-                </button>
+                </Link>
               ))}
             </nav>
 
@@ -134,18 +145,18 @@ export default function DashboardLayout({
       <nav className="bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div className="flex items-center justify-center gap-2 px-6 py-3 overflow-x-auto">
           {navigation.map((item, index) => (
-            <button
+            <Link
               key={index}
-              onClick={item.onClick}
+              to={item.path}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-all duration-300 whitespace-nowrap ${
-                item.active
+                location.pathname === item.path
                   ? 'bg-gradient-to-r from-[#A54033] to-[#8B2F24] text-white shadow-md'
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               <span className="w-5 h-5">{item.icon}</span>
               {item.name}
-            </button>
+            </Link>
           ))}
         </div>
       </nav>

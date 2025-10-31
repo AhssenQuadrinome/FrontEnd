@@ -21,8 +21,8 @@ import { User, Ticket as TicketType, Subscription, Trip, Notification } from '..
 
 const mockUser: User = {
   id: '1',
-  name: 'Ahmed Hassan',
-  email: 'ahmed.hassan@example.com',
+  name: 'Abderrahmane Essahih',
+  email: 'abderrahmane.essahih@example.com',
   role: 'passenger',
 };
 

@@ -18,6 +18,13 @@ import GeolocationPage from "./components/admin/pages/GeolocationPage";
 import IncidentsPage from "./components/admin/pages/IncidentsPage";
 import NotificationsPage from "./components/admin/pages/NotificationsPage";
 
+import PassengerTicketsPage from "./components/passenger/pages/TicketsPage";
+import PassengerSubscriptionPage from "./components/passenger/pages/SubscriptionPage";
+import PassengerTripsPage from "./components/passenger/pages/TripsPage";
+import PassengerProfilePage from "./components/passenger/pages/ProfilePage";
+import PassengerNotificationsPage from "./components/passenger/pages/NotificationsPage";
+import PassengerBuyTicketPage from "./components/passenger/pages/BuyTicketPage";
+
 createRoot(document.getElementById("app") as HTMLElement).render(
   <StrictMode>
     <BrowserRouter>
@@ -30,14 +37,22 @@ createRoot(document.getElementById("app") as HTMLElement).render(
         <Route path="/dashboard/controller" element={<ControllerDashboard />} />
         <Route path="/dashboard/driver" element={<DriverDashboard />} />
         <Route path="/dashboard/passenger" element={<PassengerDashboard />} />
-        {/* Admin dashboard split pages */}
-        <Route path="/admin/overview" element={<OverviewPage />} />
-        <Route path="/admin/users" element={<UsersPage />} />
-        <Route path="/admin/tickets" element={<TicketsPage />} />
-        <Route path="/admin/routes" element={<RoutesPage />} />
-        <Route path="/admin/geolocation" element={<GeolocationPage />} />
-        <Route path="/admin/incidents" element={<IncidentsPage />} />
-        <Route path="/admin/notifications" element={<NotificationsPage />} />
+  {/* Admin dashboard split pages */}
+  <Route path="/admin/overview" element={<OverviewPage />} />
+  <Route path="/admin/users" element={<UsersPage />} />
+  <Route path="/admin/tickets" element={<TicketsPage />} />
+  <Route path="/admin/routes" element={<RoutesPage />} />
+  <Route path="/admin/geolocation" element={<GeolocationPage />} />
+  <Route path="/admin/incidents" element={<IncidentsPage />} />
+  <Route path="/admin/notifications" element={<NotificationsPage />} />
+
+  {/* Passenger dashboard split pages */}
+  <Route path="/passenger/tickets" element={<PassengerTicketsPage />} />
+  <Route path="/passenger/subscription" element={<PassengerSubscriptionPage />} />
+  <Route path="/passenger/trips" element={<PassengerTripsPage />} />
+  <Route path="/passenger/profile" element={<PassengerProfilePage />} />
+  <Route path="/passenger/notifications" element={<PassengerNotificationsPage />} />
+  <Route path="/passenger/buy-ticket" element={<PassengerBuyTicketPage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
