@@ -525,7 +525,7 @@ export default function RoutesPage() {
         </div>
 
         {/* Routes Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8">
           {routes.map((route) => (
             <div
               key={route.id}
@@ -612,11 +612,11 @@ export default function RoutesPage() {
                     <div className="relative flex justify-between px-2">
                       {(() => {
                         const displayStations = route.stationsList && route.stationsList.length > 0 
-                          ? route.stationsList.slice(0, 5)
-                          : [...Array(Math.min(route.stations, 5))].map((_, idx) => ({
+                          ? route.stationsList
+                          : [...Array(Math.min(route.stations, 8))].map((_, idx) => ({
                               id: `temp-${idx}`,
                               name: idx === 0 ? route.startPoint : 
-                                    idx === Math.min(route.stations, 5) - 1 ? route.endPoint :
+                                    idx === Math.min(route.stations, 8) - 1 ? route.endPoint :
                                     `Station ${String.fromCharCode(65 + idx - 1)}`,
                               order: idx
                             }));
@@ -671,7 +671,7 @@ export default function RoutesPage() {
                               
                               {/* Station name */}
                               <div className="mt-3 text-center">
-                                <span className="text-[9px] font-bold text-[#9B392D] block max-w-[70px] leading-tight">
+                                <span className="text-[9px] font-bold text-[#9B392D] block max-w-[70px] leading-tight truncate">
                                   {station.name}
                                 </span>
                                 <span className="text-[8px] text-[#7d2e24] mt-0.5 block">{Math.floor(Math.random() * 300 + 200)} pics</span>
