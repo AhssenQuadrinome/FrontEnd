@@ -564,11 +564,21 @@ Authorization: Bearer {{access_token}}
 # Subscriptions Management
 ### Get My Subscriptions - GET
 # Get all subscriptions for logged-in passenger
+# Response: Array of Subscription objects
+# Example:
+# [
+#   {
+#     id: "1", type: "monthly", passengerType: "student", status: "active",
+#     startDate: "2025-10-01T00:00:00", endDate: "2025-10-31T23:59:59",
+#     price: 50.0, autoRenew: true, subscriptionId: "SUB-2025-4782",
+#     routeCoverage: "All Routes"
+#   }
+# ]
 GET http://localhost:8080/api/passenger/subscriptions
 Authorization: Bearer {{access_token}}
 
 ### Get Subscription by ID - GET
-# Get specific subscription details
+# Get specific subscription details including subscriptionId and routeCoverage
 GET http://localhost:8080/api/passenger/subscriptions/1
 Authorization: Bearer {{access_token}}
 
