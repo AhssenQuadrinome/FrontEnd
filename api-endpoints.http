@@ -1,0 +1,1168 @@
+###############################################################################
+# OurBusWay API Endpoints - Complete Documentation
+# Frontend Requirements Analysis
+# Base URL: http://localhost:8080
+###############################################################################
+
+###############################################################################
+# AUTHENTICATION & ACCOUNT MANAGEMENT
+###############################################################################
+
+### Login - POST
+# Endpoint for user authentication
+# Request Body: { username: string, password: string }
+# Response: { access_token: string }
+POST http://localhost:8080/authMgtApi/login
+Content-Type: application/json
+
+{
+  "username": "user@example.com",
+  "password": "password123"
+}
+
+### Register User - POST
+# Endpoint for new user registration
+# Request Body: User registration details
+# Response: User created (redirect to login)
+POST http://localhost:8080/authMgtApi/users/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "mobile": "+212612345678",
+  "password": "securePassword123",
+  "dateOfBirth": "1990-01-15",
+  "gender": "Male",
+  "address": "123 Main Street, Rabat"
+}
+
+### Validate Account - POST
+# Endpoint for account activation via email token
+# Request Body: { activationKey: string }
+# Response: 204 No Content on success
+POST http://localhost:8080/authMgtApi/validate-account
+Content-Type: application/json
+
+{
+  "activationKey": "activation-token-from-email"
+}
+
+### Forgot Password - POST (Placeholder)
+# Endpoint for password reset request
+POST http://localhost:8080/authMgtApi/forgot-password
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+
+
+###############################################################################
+# ADMIN DASHBOARD ENDPOINTS
+###############################################################################
+
+# Overview Page
+### Get System Statistics - GET
+# Dashboard overview statistics
+# Response: { totalUsers, ticketsSoldToday, activeBuses, revenueToday }
+GET http://localhost:8080/api/admin/statistics/overview
+Authorization: Bearer {{access_token}}
+
+### Get Active Routes Summary - GET
+# List of active routes with basic info
+# Response: Array of routes with { id, name, number, stations, buses, status }
+GET http://localhost:8080/api/admin/routes?status=active
+Authorization: Bearer {{access_token}}
+
+### Get Recent Incidents - GET
+# List of recent incidents for overview
+# Response: Array of incidents with status
+GET http://localhost:8080/api/admin/incidents?status=open&limit=5
+Authorization: Bearer {{access_token}}
+
+
+# Users Management
+### Get All Users - GET
+# Retrieve all users with optional filters
+# Query params: ?role=passenger&status=active&search=Ahmed
+# Response: Array of User objects
+GET http://localhost:8080/api/admin/users
+Authorization: Bearer {{access_token}}
+
+### Get All Users with Filters - GET
+# Filter users by role, status, or search term
+GET http://localhost:8080/api/admin/users?role=passenger&status=active&search=Ahmed
+Authorization: Bearer {{access_token}}
+
+### Get User by ID - GET
+# Retrieve specific user details
+GET http://localhost:8080/api/admin/users/1
+Authorization: Bearer {{access_token}}
+
+### Create User - POST
+# Admin creates a new user
+POST http://localhost:8080/api/admin/users
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "name": "New User",
+  "email": "newuser@example.com",
+  "role": "passenger",
+  "password": "password123",
+  "mobile": "+212612345678",
+  "address": "123 Street",
+  "dateOfBirth": "1995-05-15",
+  "gender": "Male"
+}
+
+### Update User - PUT
+# Update user information
+PUT http://localhost:8080/api/admin/users/1
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "name": "Updated Name",
+  "email": "updated@example.com",
+  "status": "active",
+  "role": "driver"
+}
+
+### Delete User - DELETE
+# Delete/deactivate a user
+DELETE http://localhost:8080/api/admin/users/1
+Authorization: Bearer {{access_token}}
+
+### Update User Status - PATCH
+# Activate or deactivate user
+PATCH http://localhost:8080/api/admin/users/1/status
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "status": "inactive"
+}
+
+
+# Tickets & Subscriptions Management
+### Get Tickets Statistics - GET
+# Get ticket sales and subscription statistics
+# Response: { ticketsSoldToday, activeSubscriptions, revenueToday, fraudAlerts }
+GET http://localhost:8080/api/admin/tickets/statistics
+Authorization: Bearer {{access_token}}
+
+### Get Revenue Analytics - GET
+# Detailed revenue breakdown by ticket type
+# Response: { singleTickets, monthlySubscriptions, annualSubscriptions }
+GET http://localhost:8080/api/admin/tickets/revenue-analytics
+Authorization: Bearer {{access_token}}
+
+### Get All Tickets - GET
+# List all tickets with filters
+# Query params: ?status=active&type=single&date=2025-10-28
+GET http://localhost:8080/api/admin/tickets?status=active&type=single
+Authorization: Bearer {{access_token}}
+
+### Get All Subscriptions - GET
+# List all subscriptions
+# Query params: ?status=active&type=monthly
+GET http://localhost:8080/api/admin/subscriptions?status=active&type=monthly
+Authorization: Bearer {{access_token}}
+
+### Get Fraud Alerts - GET
+# List of fraud detection alerts
+GET http://localhost:8080/api/admin/tickets/fraud-alerts
+Authorization: Bearer {{access_token}}
+
+### Export Revenue Report - GET
+# Download revenue report
+# Response: File download (CSV/PDF)
+GET http://localhost:8080/api/admin/tickets/revenue-report?format=csv
+Authorization: Bearer {{access_token}}
+
+
+# Routes & Schedules Management
+### Get All Routes - GET
+# List all routes with full details
+# Response: Array of Route objects with stations, buses, schedules
+GET http://localhost:8080/api/admin/routes
+Authorization: Bearer {{access_token}}
+
+### Get Route by ID - GET
+# Get detailed route information including stations list
+GET http://localhost:8080/api/admin/routes/1
+Authorization: Bearer {{access_token}}
+
+### Create Route - POST
+# Create a new bus route with detailed information
+# stationsList: Array of stations with name, order, lat/lng coordinates
+# Stations must be on actual roads (verified coordinates)
+# order: Sequential order starting from 0 for departure station
+POST http://localhost:8080/api/admin/routes
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "name": "Ligne Agdal-Océan",
+  "number": "15",
+  "startPoint": "Agdal",
+  "endPoint": "Océan (Plage de Rabat)",
+  "avgDuration": "45 min",
+  "frequency": "Toutes les 15 min",
+  "distance": 12.5,
+  "status": "active",
+  "buses": 8,
+  "stationsList": [
+    { "name": "Agdal", "order": 0, "latitude": 33.9716, "longitude": -6.8498 },
+    { "name": "Hay Riad", "order": 1, "latitude": 33.9811, "longitude": -6.8557 },
+    { "name": "Place Pietri", "order": 2, "latitude": 33.9947, "longitude": -6.8651 },
+    { "name": "Bab El Had", "order": 3, "latitude": 34.0017, "longitude": -6.8698 },
+    { "name": "Océan (Plage de Rabat)", "order": 4, "latitude": 34.0158, "longitude": -6.8521 }
+  ]
+}
+
+### Update Route - PUT
+# Update existing route information
+PUT http://localhost:8080/api/admin/routes/1
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "name": "Ligne Agdal-Océan Updated",
+  "number": "15",
+  "startPoint": "Agdal",
+  "endPoint": "Océan",
+  "avgDuration": "50 min",
+  "frequency": "Toutes les 12 min",
+  "status": "active",
+  "stationsList": [
+    { "id": "s1", "name": "Agdal", "order": 0 },
+    { "id": "s2", "name": "Hay Riad", "order": 1 }
+  ]
+}
+
+### Delete Route - DELETE
+# Delete a route
+DELETE http://localhost:8080/api/admin/routes/1
+Authorization: Bearer {{access_token}}
+
+### Update Route Status - PATCH
+# Change route status (active/inactive/maintenance)
+PATCH http://localhost:8080/api/admin/routes/1/status
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "status": "maintenance"
+}
+
+### Get Route Statistics - GET
+# Get performance statistics for a specific route
+# Response includes detailed metrics:
+# {
+#   "occupancy": 78,        // % of bus capacity filled
+#   "onTime": 92,           // % of trips on time
+#   "passengers": 1847,     // Daily passenger count
+#   "revenue": 4523,        // Daily revenue in currency
+#   "avgDuration": "45 min",
+#   "frequency": "Every 15 min"
+# }
+GET http://localhost:8080/api/admin/routes/1/statistics
+Authorization: Bearer {{access_token}}
+
+### Assign Bus to Route - POST
+# Assign a bus to a specific route
+POST http://localhost:8080/api/admin/routes/1/buses
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "busId": "BUS-101",
+  "driverId": "2"
+}
+
+### Get Route Schedules - GET
+# Get schedule information for a route
+GET http://localhost:8080/api/admin/routes/1/schedules
+Authorization: Bearer {{access_token}}
+
+### Update Route Schedule - PUT
+# Update schedule for a route
+PUT http://localhost:8080/api/admin/routes/1/schedules
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "schedules": [
+    { "departureTime": "06:00", "frequency": "15 min" },
+    { "departureTime": "08:00", "frequency": "10 min" }
+  ]
+}
+
+
+# Geolocation & Bus Tracking
+### Get All Buses - GET
+# List all buses with current location and real-time info
+# Response includes: id, number, route, routeName, driver, status, location, speed, passengers
+# Example:
+# [
+#   {
+#     id: "1", number: "BUS-101", route: "15", routeName: "Ligne Agdal-Océan",
+#     driver: "Hiba EL OUERKHAOUI", status: "active",
+#     location: { lat: 33.9947, lng: -6.8651 },
+#     speed: 45, passengers: 32
+#   }
+# ]
+GET http://localhost:8080/api/admin/buses
+Authorization: Bearer {{access_token}}
+
+### Get Bus Location - GET
+# Get real-time location of a specific bus
+GET http://localhost:8080/api/admin/buses/BUS-101/location
+Authorization: Bearer {{access_token}}
+
+### Get Buses by Route - GET
+# Get all buses assigned to a specific route
+GET http://localhost:8080/api/admin/routes/15/buses
+Authorization: Bearer {{access_token}}
+
+### Get Bus Fleet Statistics - GET
+# Statistics about bus fleet status
+# Response: { activeBuses, inMaintenance, totalBuses }
+GET http://localhost:8080/api/admin/buses/statistics
+Authorization: Bearer {{access_token}}
+
+### Update Bus Status - PATCH
+# Update bus operational status
+PATCH http://localhost:8080/api/admin/buses/BUS-101/status
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "status": "maintenance"
+}
+
+### Get Route Trajectory - GET
+# Get route path coordinates for map display (following actual roads)
+# Response: Array of [latitude, longitude] coordinate pairs
+# Can fetch from OSRM API or use pre-computed paths
+# Example: [[33.9716, -6.8498], [33.9745, -6.8512], ...]
+GET http://localhost:8080/api/admin/routes/15/trajectory
+Authorization: Bearer {{access_token}}
+
+### Get Route Trajectory from OSRM (External API) - GET
+# Fetch real-time road route between coordinates
+# Free API, no authentication needed
+# Format: lng,lat;lng,lat;lng,lat
+GET https://router.project-osrm.org/route/v1/driving/-6.8498,33.9716;-6.8557,33.9811;-6.8651,33.9947?overview=full&geometries=geojson
+
+### Get Stations by Route - GET
+# Get all stations for a specific route with coordinates
+# Response includes: id, name, latitude, longitude, order, route
+# Example: 
+# [
+#   { id: "s1", name: "Agdal", lat: 33.9716, lng: -6.8498, route: "15", order: 0 },
+#   { id: "s2", name: "Hay Riad", lat: 33.9811, lng: -6.8557, route: "15", order: 1 }
+# ]
+GET http://localhost:8080/api/admin/routes/15/stations
+Authorization: Bearer {{access_token}}
+
+
+# Incidents Management
+### Get All Incidents - GET
+# List all incidents with filters
+# Query params: ?status=open&severity=high&routeId=1
+GET http://localhost:8080/api/admin/incidents?status=open&severity=high
+Authorization: Bearer {{access_token}}
+
+### Get Incident by ID - GET
+# Get specific incident details
+GET http://localhost:8080/api/admin/incidents/1
+Authorization: Bearer {{access_token}}
+
+### Create Incident - POST
+# Report a new incident (typically from driver)
+POST http://localhost:8080/api/admin/incidents
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "type": "delay",
+  "tripId": "TR001",
+  "routeName": "Line 15",
+  "description": "Heavy traffic on main boulevard",
+  "reportedBy": "Karim Benali",
+  "severity": "medium"
+}
+
+### Update Incident - PUT
+# Update incident information
+PUT http://localhost:8080/api/admin/incidents/1
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "status": "resolved",
+  "resolution": "Traffic cleared, normal service resumed"
+}
+
+### Resolve Incident - PATCH
+# Mark incident as resolved
+PATCH http://localhost:8080/api/admin/incidents/1/resolve
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "resolution": "Issue fixed"
+}
+
+### Delete Incident - DELETE
+# Delete an incident record
+DELETE http://localhost:8080/api/admin/incidents/1
+Authorization: Bearer {{access_token}}
+
+### Get Incidents Statistics - GET
+# Get incident statistics
+# Response: { openIncidents, resolvedToday, totalIncidents }
+GET http://localhost:8080/api/admin/incidents/statistics
+Authorization: Bearer {{access_token}}
+
+
+# Notifications Management
+### Get All Notifications - GET
+# List all system notifications
+GET http://localhost:8080/api/admin/notifications
+Authorization: Bearer {{access_token}}
+
+### Get Notification History - GET
+# Get sent notification history with delivery stats
+GET http://localhost:8080/api/admin/notifications/history?limit=10
+Authorization: Bearer {{access_token}}
+
+### Send Mass Notification - POST
+# Send notification to multiple users
+POST http://localhost:8080/api/admin/notifications/mass
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "type": "delay",
+  "title": "Line 15 Delay Alert",
+  "message": "Line 15 buses are experiencing 15-minute delays due to road construction.",
+  "targetAudience": "route-specific",
+  "routeId": "15",
+  "priority": "high",
+  "channels": ["email", "sms", "push"]
+}
+
+### Send Email Notification - POST
+# Send notification via email
+POST http://localhost:8080/api/admin/notifications/email
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "recipients": ["all-passengers"],
+  "subject": "Service Update",
+  "message": "Important service update message",
+  "type": "service"
+}
+
+### Send SMS Notification - POST
+# Send notification via SMS
+POST http://localhost:8080/api/admin/notifications/sms
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "recipients": ["route-15-subscribers"],
+  "message": "Line 15 delayed by 10 minutes"
+}
+
+### Delete Notification - DELETE
+# Delete a notification
+DELETE http://localhost:8080/api/admin/notifications/1
+Authorization: Bearer {{access_token}}
+
+
+###############################################################################
+# PASSENGER DASHBOARD ENDPOINTS
+###############################################################################
+
+# Tickets Management
+### Get My Tickets - GET
+# Get all tickets for logged-in passenger
+# Query params: ?status=active
+GET http://localhost:8080/api/passenger/tickets?status=active
+Authorization: Bearer {{access_token}}
+
+### Get Ticket by ID - GET
+# Get specific ticket details with QR code
+GET http://localhost:8080/api/passenger/tickets/1
+Authorization: Bearer {{access_token}}
+
+### Buy Single Ticket - POST
+# Purchase a single bus ticket
+POST http://localhost:8080/api/passenger/tickets/buy
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "type": "single",
+  "routeId": "15",
+  "departureStation": "Rabat Ville",
+  "arrivalStation": "Agdal",
+  "price": 20.0,
+  "paymentMethod": "credit_card"
+}
+
+### Search Tickets - POST
+# Search available tickets/routes between stations
+# Returns suggestions with route, duration, connections, price
+# Available stations: Sidi Yaacoub, Manssour, Rabat Ville, Agdal, Salé, 
+#                     Youssoufia, Temara, Akkari, Hay Riad, Oudayas
+POST http://localhost:8080/api/passenger/tickets/search
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "departure": "Rabat Ville",
+  "arrival": "Agdal",
+  "date": "2025-10-28"
+}
+
+### Search Tickets Response Example
+# Response structure:
+# {
+#   "results": [
+#     {
+#       "departure": "Rabat Ville",
+#       "arrival": "Agdal",
+#       "duration": "45 min",
+#       "connections": 1,
+#       "trainType": "Express",
+#       "departureStation": "Rabat Ville",
+#       "arrivalStation": "Agdal",
+#       "price": 20.0,
+#       "currency": "DH",
+#       "intermediateStations": [
+#         { "time": "08:00", "station": "Manssour", "trainType": "Local" }
+#       ]
+#     }
+#   ]
+# }
+
+### Validate Ticket - GET
+# Validate ticket (for QR display)
+GET http://localhost:8080/api/passenger/tickets/1/validate
+Authorization: Bearer {{access_token}}
+
+
+# Subscriptions Management
+### Get My Subscriptions - GET
+# Get all subscriptions for logged-in passenger
+GET http://localhost:8080/api/passenger/subscriptions
+Authorization: Bearer {{access_token}}
+
+### Get Subscription by ID - GET
+# Get specific subscription details
+GET http://localhost:8080/api/passenger/subscriptions/1
+Authorization: Bearer {{access_token}}
+
+### Get Available Subscription Plans - GET
+# Get all available subscription types and pricing
+# Response: Array of subscription plans with passenger types
+# passengerType: "student" | "young" | "elder" | "standard"
+# type: "monthly" | "annual"
+# Example response:
+# [
+#   { type: "monthly", passengerType: "student", price: 50, benefits: [...] },
+#   { type: "monthly", passengerType: "young", price: 70, benefits: [...] },
+#   { type: "monthly", passengerType: "elder", price: 60, benefits: [...] },
+#   { type: "monthly", passengerType: "standard", price: 100, benefits: [...] }
+# ]
+GET http://localhost:8080/api/passenger/subscriptions/plans
+Authorization: Bearer {{access_token}}
+
+### Purchase Subscription - POST
+# Buy a new subscription
+# passengerType options: "student" | "young" | "elder" | "standard"
+# type options: "monthly" | "annual"
+POST http://localhost:8080/api/passenger/subscriptions/purchase
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "type": "monthly",
+  "passengerType": "student",
+  "routeCoverage": "all",
+  "autoRenew": true,
+  "paymentMethod": "credit_card"
+}
+
+### Renew Subscription - POST
+# Renew existing subscription
+POST http://localhost:8080/api/passenger/subscriptions/1/renew
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "autoRenew": true
+}
+
+### Update Auto-Renewal - PATCH
+# Enable/disable auto-renewal
+PATCH http://localhost:8080/api/passenger/subscriptions/1/auto-renew
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "autoRenew": false
+}
+
+### Get Subscription Receipts - GET
+# Get payment receipts for subscription
+GET http://localhost:8080/api/passenger/subscriptions/1/receipts
+Authorization: Bearer {{access_token}}
+
+### Cancel Subscription - DELETE
+# Cancel an active subscription
+DELETE http://localhost:8080/api/passenger/subscriptions/1
+Authorization: Bearer {{access_token}}
+
+
+# Routes & Trips
+### Get All Routes - GET
+# Get all available bus routes and schedules
+GET http://localhost:8080/api/passenger/routes
+Authorization: Bearer {{access_token}}
+
+### Get Route Details - GET
+# Get detailed route information
+GET http://localhost:8080/api/passenger/routes/15
+Authorization: Bearer {{access_token}}
+
+### Get Route Trips - GET
+# Get scheduled trips for a route
+# Query params: ?date=2025-10-28
+GET http://localhost:8080/api/passenger/routes/15/trips?date=2025-10-28
+Authorization: Bearer {{access_token}}
+
+### Get Trip Details - GET
+# Get real-time trip information
+GET http://localhost:8080/api/passenger/trips/1
+Authorization: Bearer {{access_token}}
+
+### Get Trip Location - GET
+# Get real-time bus location for a trip
+GET http://localhost:8080/api/passenger/trips/1/location
+Authorization: Bearer {{access_token}}
+
+### Search Routes - POST
+# Search for routes between stations
+POST http://localhost:8080/api/passenger/routes/search
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "departure": "Sidi Yaacoub",
+  "arrival": "Agdal"
+}
+
+### Add Favorite Route - POST
+# Add route to favorites
+POST http://localhost:8080/api/passenger/routes/15/favorite
+Authorization: Bearer {{access_token}}
+
+### Remove Favorite Route - DELETE
+# Remove route from favorites
+DELETE http://localhost:8080/api/passenger/routes/15/favorite
+Authorization: Bearer {{access_token}}
+
+### Get Favorite Routes - GET
+# Get user's favorite routes
+GET http://localhost:8080/api/passenger/favorites
+Authorization: Bearer {{access_token}}
+
+
+# Profile Management
+### Get My Profile - GET
+# Get logged-in user profile
+GET http://localhost:8080/api/passenger/profile
+Authorization: Bearer {{access_token}}
+
+### Update Profile - PUT
+# Update user profile information
+PUT http://localhost:8080/api/passenger/profile
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "name": "Abderrahmane Essahih",
+  "email": "abderrahmane.essahih@example.com",
+  "mobile": "+212612345678",
+  "address": "123 New Address"
+}
+
+### Change Password - POST
+# Change user password
+POST http://localhost:8080/api/passenger/profile/change-password
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "oldPassword123",
+  "newPassword": "newPassword456"
+}
+
+### Upload Avatar - POST
+# Upload profile picture
+POST http://localhost:8080/api/passenger/profile/avatar
+Authorization: Bearer {{access_token}}
+Content-Type: multipart/form-data
+
+# Form data with image file
+
+
+# Notifications
+### Get My Notifications - GET
+# Get notifications for logged-in passenger
+# Query params: ?read=false
+GET http://localhost:8080/api/passenger/notifications?read=false
+Authorization: Bearer {{access_token}}
+
+### Mark Notification as Read - PATCH
+# Mark specific notification as read
+PATCH http://localhost:8080/api/passenger/notifications/1/read
+Authorization: Bearer {{access_token}}
+
+### Mark All Notifications as Read - PATCH
+# Mark all notifications as read
+PATCH http://localhost:8080/api/passenger/notifications/read-all
+Authorization: Bearer {{access_token}}
+
+### Delete Notification - DELETE
+# Delete a notification
+DELETE http://localhost:8080/api/passenger/notifications/1
+Authorization: Bearer {{access_token}}
+
+### Get Unread Count - GET
+# Get count of unread notifications
+GET http://localhost:8080/api/passenger/notifications/unread-count
+Authorization: Bearer {{access_token}}
+
+
+###############################################################################
+# DRIVER DASHBOARD ENDPOINTS
+###############################################################################
+
+# Trips & Schedule Management
+### Get My Trips - GET
+# Get all trips assigned to driver
+# Query params: ?date=2025-10-28&status=scheduled
+GET http://localhost:8080/api/driver/trips?date=2025-10-28&status=scheduled
+Authorization: Bearer {{access_token}}
+
+### Get Trip Details - GET
+# Get specific trip details
+GET http://localhost:8080/api/driver/trips/1
+Authorization: Bearer {{access_token}}
+
+### Get Today's Trips - GET
+# Get trips scheduled for today
+GET http://localhost:8080/api/driver/trips/today
+Authorization: Bearer {{access_token}}
+
+### Start Trip - POST
+# Start a scheduled trip
+POST http://localhost:8080/api/driver/trips/1/start
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "startTime": "2025-10-28T14:00:00",
+  "initialLocation": {
+    "latitude": 33.9716,
+    "longitude": -6.8498
+  }
+}
+
+### End Trip - POST
+# Complete an in-progress trip
+POST http://localhost:8080/api/driver/trips/1/end
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "endTime": "2025-10-28T14:45:00",
+  "finalLocation": {
+    "latitude": 34.0158,
+    "longitude": -6.8521
+  },
+  "totalPassengers": 45
+}
+
+### Update Trip Status - PATCH
+# Update trip status
+PATCH http://localhost:8080/api/driver/trips/1/status
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "status": "delayed",
+  "reason": "Heavy traffic"
+}
+
+
+# Geolocation
+### Update Bus Location - POST
+# Send real-time GPS location update
+# Should be called every 3-5 seconds for smooth tracking
+# speed: in km/h
+# heading: in degrees (0-360, 0=North, 90=East, 180=South, 270=West)
+# passengers: current passenger count on bus
+POST http://localhost:8080/api/driver/location
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "busId": "BUS-101",
+  "latitude": 33.9947,
+  "longitude": -6.8651,
+  "speed": 45,
+  "heading": 180,
+  "passengers": 32,
+  "timestamp": "2025-10-28T14:23:00"
+}
+
+### Start Location Sharing - POST
+# Enable location sharing for trip
+POST http://localhost:8080/api/driver/location/start-sharing
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "tripId": "1",
+  "busId": "BUS-101"
+}
+
+### Stop Location Sharing - POST
+# Disable location sharing
+POST http://localhost:8080/api/driver/location/stop-sharing
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "tripId": "1"
+}
+
+### Get Location Sharing Status - GET
+# Check if location sharing is active
+GET http://localhost:8080/api/driver/location/status
+Authorization: Bearer {{access_token}}
+
+
+# Incidents Management
+### Report Incident - POST
+# Report an incident during trip
+POST http://localhost:8080/api/driver/incidents
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "type": "delay",
+  "tripId": "1",
+  "routeName": "Line 15",
+  "description": "Heavy traffic on main boulevard",
+  "severity": "medium",
+  "location": {
+    "latitude": 33.9947,
+    "longitude": -6.8651
+  }
+}
+
+### Get My Incidents - GET
+# Get all incidents reported by driver
+GET http://localhost:8080/api/driver/incidents
+Authorization: Bearer {{access_token}}
+
+### Update Incident - PUT
+# Update incident status/details
+PUT http://localhost:8080/api/driver/incidents/1
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "status": "resolved",
+  "notes": "Issue has been resolved"
+}
+
+
+# Planning & History
+### Get Driver Statistics - GET
+# Get driver performance statistics
+# Response: { tripsThisWeek, onTimeRate, totalTrips }
+GET http://localhost:8080/api/driver/statistics
+Authorization: Bearer {{access_token}}
+
+### Get Trip History - GET
+# Get completed trips history
+# Query params: ?startDate=2025-10-01&endDate=2025-10-31
+GET http://localhost:8080/api/driver/trips/history?startDate=2025-10-01&endDate=2025-10-31
+Authorization: Bearer {{access_token}}
+
+### Get Route Assignment - GET
+# Get currently assigned route
+GET http://localhost:8080/api/driver/route-assignment
+Authorization: Bearer {{access_token}}
+
+
+# Notifications
+### Get Driver Notifications - GET
+# Get notifications specific to driver
+GET http://localhost:8080/api/driver/notifications
+Authorization: Bearer {{access_token}}
+
+
+###############################################################################
+# CONTROLLER DASHBOARD ENDPOINTS
+###############################################################################
+
+# Ticket Validation
+### Validate Ticket by QR - POST
+# Scan and validate passenger ticket
+POST http://localhost:8080/api/controller/validate-ticket
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "qrCode": "QR123456789",
+  "tripId": "TR001",
+  "scannedAt": "2025-10-28T14:23:00",
+  "location": {
+    "latitude": 33.9947,
+    "longitude": -6.8651
+  }
+}
+
+### Get Validation Result - GET
+# Get validation result for a ticket
+GET http://localhost:8080/api/controller/validate-ticket/QR123456789
+Authorization: Bearer {{access_token}}
+
+### Get Validation Statistics - GET
+# Get today's validation statistics
+# Response: { validTickets, invalidTickets, totalScans, validationRate }
+GET http://localhost:8080/api/controller/statistics/today
+Authorization: Bearer {{access_token}}
+
+### Get Recent Validations - GET
+# Get recent validation records
+GET http://localhost:8080/api/controller/validations/recent?limit=10
+Authorization: Bearer {{access_token}}
+
+
+# Passenger Inspection
+### Search Passenger - GET
+# Search passenger by ticket ID or name
+# Query params: ?query=Ahmed
+GET http://localhost:8080/api/controller/passengers/search?query=Ahmed
+Authorization: Bearer {{access_token}}
+
+### Get Passenger Details - GET
+# Get passenger information by ID
+GET http://localhost:8080/api/controller/passengers/P001
+Authorization: Bearer {{access_token}}
+
+### Get Passenger Tickets - GET
+# Get all tickets for a passenger
+GET http://localhost:8080/api/controller/passengers/P001/tickets
+Authorization: Bearer {{access_token}}
+
+### Report Fraud - POST
+# Report fraudulent ticket or passenger
+POST http://localhost:8080/api/controller/report-fraud
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "ticketId": "T000089",
+  "passengerId": "P003",
+  "reason": "Expired ticket",
+  "description": "Passenger attempted to use expired ticket",
+  "tripId": "TR001",
+  "location": {
+    "latitude": 33.9947,
+    "longitude": -6.8651
+  }
+}
+
+
+# Validation Reports
+### Get Validation History - GET
+# Get validation history with filters
+# Query params: ?date=2025-10-28&status=valid
+GET http://localhost:8080/api/controller/validations?date=2025-10-28&status=valid
+Authorization: Bearer {{access_token}}
+
+### Get Daily Report - GET
+# Get daily validation report
+GET http://localhost:8080/api/controller/reports/daily?date=2025-10-28
+Authorization: Bearer {{access_token}}
+
+### Get Validation Analytics - GET
+# Get detailed validation analytics
+# Response: { validationRate, fraudDetected, peakHours }
+GET http://localhost:8080/api/controller/analytics
+Authorization: Bearer {{access_token}}
+
+### Export Validation Report - GET
+# Export validation report
+GET http://localhost:8080/api/controller/reports/export?format=pdf&date=2025-10-28
+Authorization: Bearer {{access_token}}
+
+
+# Anomalies & Fraud Detection
+### Get Fraud Alerts - GET
+# Get fraud detection alerts
+GET http://localhost:8080/api/controller/fraud-alerts?status=pending
+Authorization: Bearer {{access_token}}
+
+### Get Anomalies - GET
+# Get anomalous validation patterns
+GET http://localhost:8080/api/controller/anomalies
+Authorization: Bearer {{access_token}}
+
+### Forward Alert to Admin - POST
+# Forward fraud alert to administration
+POST http://localhost:8080/api/controller/fraud-alerts/1/forward
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "notes": "Repeated use of expired ticket"
+}
+
+
+###############################################################################
+# SHARED/COMMON ENDPOINTS
+###############################################################################
+
+# Stations
+### Get All Stations - GET
+# Get all bus stations
+GET http://localhost:8080/api/stations
+Authorization: Bearer {{access_token}}
+
+### Get Station Details - GET
+# Get specific station information
+GET http://localhost:8080/api/stations/s1
+Authorization: Bearer {{access_token}}
+
+### Get Stations by Route - GET
+# Get stations for specific route
+GET http://localhost:8080/api/routes/15/stations
+Authorization: Bearer {{access_token}}
+
+
+# Payment
+### Process Payment - POST
+# Process payment for ticket/subscription
+POST http://localhost:8080/api/payment/process
+Authorization: Bearer {{access_token}}
+Content-Type: application/json
+
+{
+  "amount": 50.0,
+  "currency": "MAD",
+  "paymentMethod": "credit_card",
+  "itemType": "subscription",
+  "itemId": "SUB-2025-4782",
+  "cardDetails": {
+    "cardNumber": "4242424242424242",
+    "expiryMonth": "12",
+    "expiryYear": "2025",
+    "cvv": "123"
+  }
+}
+
+### Get Payment History - GET
+# Get payment transaction history
+GET http://localhost:8080/api/payment/history
+Authorization: Bearer {{access_token}}
+
+### Get Receipt - GET
+# Download payment receipt
+GET http://localhost:8080/api/payment/receipt/PAYMENT-123
+Authorization: Bearer {{access_token}}
+
+
+# Real-Time Data (WebSocket or Server-Sent Events)
+### WebSocket Connection for Real-Time Updates
+# WebSocket endpoint for live bus tracking
+# ws://localhost:8080/api/realtime/bus-locations
+
+### Subscribe to Route Updates
+# Server-Sent Events for route updates
+# GET http://localhost:8080/api/realtime/route/15/updates
+# Event stream for real-time trip status
+
+
+###############################################################################
+# SUPPORTING ENDPOINTS
+###############################################################################
+
+### Health Check - GET
+# API health check endpoint
+GET http://localhost:8080/api/health
+
+### Get Server Time - GET
+# Get current server timestamp
+GET http://localhost:8080/api/time
+
+### Get API Version - GET
+# Get API version information
+GET http://localhost:8080/api/version
+
+
+###############################################################################
+# NOTES & CONVENTIONS
+###############################################################################
+
+# Response Codes:
+# 200 - Success
+# 201 - Created
+# 204 - No Content (success with no response body)
+# 400 - Bad Request
+# 401 - Unauthorized
+# 403 - Forbidden
+# 404 - Not Found
+# 500 - Internal Server Error
+
+# Authentication:
+# All authenticated endpoints require Bearer token in Authorization header
+# Token obtained from login endpoint
+# Format: Authorization: Bearer {access_token}
+
+# Date Format:
+# ISO 8601 format: YYYY-MM-DDTHH:mm:ss
+# Example: 2025-10-28T14:23:00
+
+# Pagination (where applicable):
+# Query params: ?page=1&limit=20&sort=createdAt&order=desc
+
+# Common Query Parameters:
+# - status: Filter by status (active, inactive, expired, etc.)
+# - date: Filter by date
+# - search: Search term
+# - limit: Number of results
+# - page: Page number for pagination
+# - sort: Sort field
+# - order: Sort order (asc, desc)
+
+###############################################################################
+# END OF API DOCUMENTATION
+###############################################################################
