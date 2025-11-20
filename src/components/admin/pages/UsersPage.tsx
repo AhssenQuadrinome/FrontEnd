@@ -43,20 +43,34 @@ export default function UsersPage() {
 		if (user) {
 			authService.getProfile()
 				.then(profile => {
+					// Map backend roles to frontend roles
+					const roleMap: Record<string, "admin" | "driver" | "controller" | "passenger"> = {
+						'ADMINISTRATOR': 'admin',
+						'DRIVER': 'driver',
+						'CONTROLLER': 'controller',
+						'PASSENGER': 'passenger'
+					};
 					setCurrentUser({
 						id: profile.id,
 						name: `${profile.firstName} ${profile.lastName}`,
 						email: profile.email,
-						role: profile.role.toLowerCase() as "admin" | "driver" | "controller" | "passenger"
+						role: roleMap[profile.role] || profile.role.toLowerCase() as "admin" | "driver" | "controller" | "passenger"
 					});
 				})
 				.catch(err => {
 					console.error('Failed to load admin profile:', err);
+					// Map role from localStorage too
+					const roleMap: Record<string, "admin" | "driver" | "controller" | "passenger"> = {
+						'ADMINISTRATOR': 'admin',
+						'DRIVER': 'driver',
+						'CONTROLLER': 'controller',
+						'PASSENGER': 'passenger'
+					};
 					setCurrentUser({
 						id: user.id,
 						name: "Admin User",
 						email: user.email,
-						role: user.role.toLowerCase() as "admin" | "driver" | "controller" | "passenger"
+						role: roleMap[user.role] || user.role.toLowerCase() as "admin" | "driver" | "controller" | "passenger"
 					});
 				});
 		}

@@ -66,8 +66,12 @@ export default function DashboardLayout({
     { name: 'Profile', icon: <UserIcon />, path: '/controller/profile' },
   ];
   
+  // Normalize role to handle both backend (ADMINISTRATOR) and frontend (admin) formats
+  const normalizedRole = user.role.toLowerCase();
+  const isAdmin = normalizedRole === 'admin' || normalizedRole === 'administrator';
+  
   const navigation = 
-    user.role === 'admin' ? adminNavigation :
+    isAdmin ? adminNavigation :
     user.role === 'driver' ? driverNavigation :
     user.role === 'controller' ? controllerNavigation :
     passengerNavigation;
