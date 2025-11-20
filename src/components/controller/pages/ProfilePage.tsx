@@ -4,13 +4,13 @@ import { User } from '../../../types';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 import { Button } from '../../ui/button';
-import { Edit2, Save, X, User as UserIcon, Mail, Phone, Calendar, MapPin, Lock } from 'lucide-react';
+import { Edit2, Save, X, User as UserIcon, Mail, Phone, Calendar, MapPin, Lock, Shield, Award } from 'lucide-react';
 
 const mockUser: User = {
-  id: '1',
-  name: 'Abderrahmane Essahih',
-  email: 'abderrahmane.essahih@example.com',
-  role: 'passenger',
+  id: '3',
+  name: 'Moon flower',
+  email: 'moon.flower@mybus.com',
+  role: 'controller',
 };
 
 export default function ProfilePage() {
@@ -23,10 +23,12 @@ export default function ProfilePage() {
   const [firstName, setFirstName] = useState(nameParts[0] || '');
   const [lastName, setLastName] = useState(nameParts.slice(1).join(' ') || '');
   const [email, setEmail] = useState(mockUser.email);
-  const [mobile, setMobile] = useState('+212612345678');
-  const [dateOfBirth, setDateOfBirth] = useState('1995-05-15');
+  const [mobile, setMobile] = useState('+212698765432');
+  const [dateOfBirth, setDateOfBirth] = useState('1988-07-12');
   const [gender, setGender] = useState('Male');
-  const [address, setAddress] = useState('123 Avenue Mohammed V, Rabat');
+  const [address, setAddress] = useState('789 Boulevard Zerktouni, Rabat');
+  const [badgeNumber, setBadgeNumber] = useState('CTRL-2020-MA-00123');
+  const [zone, setZone] = useState('Zone A - Downtown');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -51,10 +53,12 @@ export default function ProfilePage() {
     setFirstName(nameParts[0] || '');
     setLastName(nameParts.slice(1).join(' ') || '');
     setEmail(mockUser.email);
-    setMobile('+212612345678');
-    setDateOfBirth('1995-05-15');
+    setMobile('+212698765432');
+    setDateOfBirth('1988-07-12');
     setGender('Male');
-    setAddress('123 Avenue Mohammed V, Rabat');
+    setAddress('789 Boulevard Zerktouni, Rabat');
+    setBadgeNumber('CTRL-2020-MA-00123');
+    setZone('Zone A - Downtown');
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
@@ -138,10 +142,14 @@ export default function ProfilePage() {
                 <p className="text-gray-600 mb-2">{email}</p>
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                   <span className="px-3 py-1 bg-gradient-to-r from-[#9B392D] to-[#7d2e24] text-white text-xs font-semibold rounded-full">
-                    Passenger
+                    Controller
                   </span>
                   <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                     Active Account
+                  </span>
+                  <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                    <Shield className="w-3 h-3" />
+                    {badgeNumber}
                   </span>
                 </div>
               </div>
@@ -288,6 +296,42 @@ export default function ProfilePage() {
                 />
               </div>
 
+              {/* Controller Specific Information */}
+              <div className="md:col-span-2 mt-6 pt-6 border-t-2 border-gray-100">
+                <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-[#9B392D]" />
+                  Controller Information
+                </h5>
+              </div>
+
+              <div>
+                <Label htmlFor="badgeNumber" className="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                  <Award className="w-4 h-4 text-[#9B392D]" />
+                  Badge Number
+                </Label>
+                <Input
+                  id="badgeNumber"
+                  value={badgeNumber}
+                  disabled={true}
+                  className="h-12 rounded-xl border-2 border-gray-200 bg-gray-50"
+                />
+                <p className="text-xs text-gray-500 mt-1">Badge number cannot be changed</p>
+              </div>
+
+              <div>
+                <Label htmlFor="zone" className="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#9B392D]" />
+                  Assigned Zone
+                </Label>
+                <Input
+                  id="zone"
+                  value={zone}
+                  disabled={true}
+                  className="h-12 rounded-xl border-2 border-gray-200 bg-gray-50"
+                />
+                <p className="text-xs text-gray-500 mt-1">Contact admin to change zone assignment</p>
+              </div>
+
               {/* Password Section - Only show when editing */}
               {isEditing && (
                 <>
@@ -350,16 +394,16 @@ export default function ProfilePage() {
           <h5 className="text-lg font-bold text-gray-900 mb-4">Account Information</h5>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg p-4 border-l-4 border-[#9B392D]">
-              <p className="text-sm text-gray-600 mb-1">Member Since</p>
-              <p className="text-lg font-bold text-gray-900">January 2024</p>
+              <p className="text-sm text-gray-600 mb-1">Joined</p>
+              <p className="text-lg font-bold text-gray-900">August 2020</p>
             </div>
             <div className="bg-white rounded-lg p-4 border-l-4 border-blue-600">
-              <p className="text-sm text-gray-600 mb-1">Total Trips</p>
-              <p className="text-lg font-bold text-gray-900">127 trips</p>
+              <p className="text-sm text-gray-600 mb-1">Validations</p>
+              <p className="text-lg font-bold text-gray-900">3,892 checks</p>
             </div>
             <div className="bg-white rounded-lg p-4 border-l-4 border-green-600">
-              <p className="text-sm text-gray-600 mb-1">Account Status</p>
-              <p className="text-lg font-bold text-green-600">Active</p>
+              <p className="text-sm text-gray-600 mb-1">Efficiency</p>
+              <p className="text-lg font-bold text-green-600">98.5%</p>
             </div>
           </div>
         </div>

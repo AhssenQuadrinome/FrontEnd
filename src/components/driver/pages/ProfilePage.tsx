@@ -4,13 +4,13 @@ import { User } from '../../../types';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 import { Button } from '../../ui/button';
-import { Edit2, Save, X, User as UserIcon, Mail, Phone, Calendar, MapPin, Lock } from 'lucide-react';
+import { Edit2, Save, X, User as UserIcon, Mail, Phone, Calendar, MapPin, Lock, Truck, Award } from 'lucide-react';
 
 const mockUser: User = {
-  id: '1',
-  name: 'Abderrahmane Essahih',
-  email: 'abderrahmane.essahih@example.com',
-  role: 'passenger',
+  id: '2',
+  name: 'Hiba EL OUERKHAOUI',
+  email: 'hiba.elouerkaoui@mybus.com',
+  role: 'driver',
 };
 
 export default function ProfilePage() {
@@ -24,9 +24,11 @@ export default function ProfilePage() {
   const [lastName, setLastName] = useState(nameParts.slice(1).join(' ') || '');
   const [email, setEmail] = useState(mockUser.email);
   const [mobile, setMobile] = useState('+212612345678');
-  const [dateOfBirth, setDateOfBirth] = useState('1995-05-15');
-  const [gender, setGender] = useState('Male');
-  const [address, setAddress] = useState('123 Avenue Mohammed V, Rabat');
+  const [dateOfBirth, setDateOfBirth] = useState('1990-03-20');
+  const [gender, setGender] = useState('Female');
+  const [address, setAddress] = useState('456 Avenue Hassan II, Casablanca');
+  const [licenseNumber, setLicenseNumber] = useState('DL-2015-MA-034567');
+  const [busAssigned, setBusAssigned] = useState('BUS-101');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -52,9 +54,11 @@ export default function ProfilePage() {
     setLastName(nameParts.slice(1).join(' ') || '');
     setEmail(mockUser.email);
     setMobile('+212612345678');
-    setDateOfBirth('1995-05-15');
-    setGender('Male');
-    setAddress('123 Avenue Mohammed V, Rabat');
+    setDateOfBirth('1990-03-20');
+    setGender('Female');
+    setAddress('456 Avenue Hassan II, Casablanca');
+    setLicenseNumber('DL-2015-MA-034567');
+    setBusAssigned('BUS-101');
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
@@ -138,10 +142,14 @@ export default function ProfilePage() {
                 <p className="text-gray-600 mb-2">{email}</p>
                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                   <span className="px-3 py-1 bg-gradient-to-r from-[#9B392D] to-[#7d2e24] text-white text-xs font-semibold rounded-full">
-                    Passenger
+                    Driver
                   </span>
                   <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                     Active Account
+                  </span>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                    <Truck className="w-3 h-3" />
+                    {busAssigned}
                   </span>
                 </div>
               </div>
@@ -288,6 +296,46 @@ export default function ProfilePage() {
                 />
               </div>
 
+              {/* Driver Specific Information */}
+              <div className="md:col-span-2 mt-6 pt-6 border-t-2 border-gray-100">
+                <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Truck className="w-5 h-5 text-[#9B392D]" />
+                  Driver Information
+                </h5>
+              </div>
+
+              <div>
+                <Label htmlFor="licenseNumber" className="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                  <Award className="w-4 h-4 text-[#9B392D]" />
+                  License Number
+                </Label>
+                <Input
+                  id="licenseNumber"
+                  value={licenseNumber}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
+                  disabled={!isEditing}
+                  className={`h-12 rounded-xl border-2 ${
+                    isEditing 
+                      ? 'border-[#9B392D]/30 focus:border-[#9B392D] focus:ring-2 focus:ring-[#9B392D]/20' 
+                      : 'border-gray-200 bg-gray-50'
+                  }`}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="busAssigned" className="text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-[#9B392D]" />
+                  Assigned Bus
+                </Label>
+                <Input
+                  id="busAssigned"
+                  value={busAssigned}
+                  disabled={true}
+                  className="h-12 rounded-xl border-2 border-gray-200 bg-gray-50"
+                />
+                <p className="text-xs text-gray-500 mt-1">Contact admin to change bus assignment</p>
+              </div>
+
               {/* Password Section - Only show when editing */}
               {isEditing && (
                 <>
@@ -350,16 +398,16 @@ export default function ProfilePage() {
           <h5 className="text-lg font-bold text-gray-900 mb-4">Account Information</h5>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg p-4 border-l-4 border-[#9B392D]">
-              <p className="text-sm text-gray-600 mb-1">Member Since</p>
-              <p className="text-lg font-bold text-gray-900">January 2024</p>
+              <p className="text-sm text-gray-600 mb-1">Joined</p>
+              <p className="text-lg font-bold text-gray-900">March 2019</p>
             </div>
             <div className="bg-white rounded-lg p-4 border-l-4 border-blue-600">
               <p className="text-sm text-gray-600 mb-1">Total Trips</p>
-              <p className="text-lg font-bold text-gray-900">127 trips</p>
+              <p className="text-lg font-bold text-gray-900">1,247 trips</p>
             </div>
             <div className="bg-white rounded-lg p-4 border-l-4 border-green-600">
-              <p className="text-sm text-gray-600 mb-1">Account Status</p>
-              <p className="text-lg font-bold text-green-600">Active</p>
+              <p className="text-sm text-gray-600 mb-1">Performance</p>
+              <p className="text-lg font-bold text-green-600">Excellent</p>
             </div>
           </div>
         </div>

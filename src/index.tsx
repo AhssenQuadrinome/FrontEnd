@@ -25,6 +25,16 @@ import PassengerProfilePage from "./components/passenger/pages/ProfilePage";
 import PassengerNotificationsPage from "./components/passenger/pages/NotificationsPage";
 import PassengerBuyTicketPage from "./components/passenger/pages/BuyTicketPage";
 
+import DriverMyTripsPage from "./components/driver/pages/MyTripsPage";
+import DriverGeolocationPage from "./components/driver/pages/GeolocationPage";
+import DriverIncidentsPage from "./components/driver/pages/IncidentsPage";
+import DriverPlanningPage from "./components/driver/pages/PlanningPage";
+import DriverProfilePage from "./components/driver/pages/ProfilePage";
+
+import ControllerValidateTicketsPage from "./components/controller/pages/ValidateTicketsPage";
+import ControllerReportsPage from "./components/controller/pages/ReportsPage";
+import ControllerProfilePage from "./components/controller/pages/ProfilePage";
+
 createRoot(document.getElementById("app") as HTMLElement).render(
   <StrictMode>
     <BrowserRouter>
@@ -53,6 +63,18 @@ createRoot(document.getElementById("app") as HTMLElement).render(
   <Route path="/passenger/profile" element={<PassengerProfilePage />} />
   <Route path="/passenger/notifications" element={<PassengerNotificationsPage />} />
   <Route path="/passenger/buy-ticket" element={<PassengerBuyTicketPage />} />
+
+  {/* Driver dashboard split pages */}
+  <Route path="/driver/trips" element={<DriverMyTripsPage />} />
+  <Route path="/driver/geolocation" element={<DriverGeolocationPage />} />
+  <Route path="/driver/incidents" element={<DriverIncidentsPage />} />
+  <Route path="/driver/planning" element={<DriverPlanningPage />} />
+  <Route path="/driver/profile" element={<DriverProfilePage />} />
+
+  {/* Controller dashboard split pages */}
+  <Route path="/controller/validate" element={<ControllerValidateTicketsPage />} />
+  <Route path="/controller/reports" element={<ControllerReportsPage />} />
+  <Route path="/controller/profile" element={<ControllerProfilePage />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,

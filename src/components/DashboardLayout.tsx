@@ -38,7 +38,24 @@ export default function DashboardLayout({
     { name: 'Incidents', icon: <Bell />, path: '/admin/incidents' },
     { name: 'Notifications', icon: <Bell />, path: '/admin/notifications' },
   ];
-  const navigation = user.role === 'admin' ? adminNavigation : passengerNavigation;
+  const driverNavigation = [
+    { name: 'My Trips', icon: <Ticket />, path: '/driver/trips' },
+    { name: 'Geolocation', icon: <Map />, path: '/driver/geolocation' },
+    { name: 'Incidents', icon: <Bell />, path: '/driver/incidents' },
+    { name: 'Planning', icon: <TrendingUp />, path: '/driver/planning' },
+    { name: 'Profile', icon: <UserIcon />, path: '/driver/profile' },
+  ];
+  const controllerNavigation = [
+    { name: 'Validate Tickets', icon: <Ticket />, path: '/controller/validate' },
+    { name: 'Reports', icon: <TrendingUp />, path: '/controller/reports' },
+    { name: 'Profile', icon: <UserIcon />, path: '/controller/profile' },
+  ];
+  
+  const navigation = 
+    user.role === 'admin' ? adminNavigation :
+    user.role === 'driver' ? driverNavigation :
+    user.role === 'controller' ? controllerNavigation :
+    passengerNavigation;
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-orange-50/20">
       {/* Header */}
