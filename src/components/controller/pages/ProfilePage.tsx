@@ -1,69 +1,142 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import DashboardLayout from '../../DashboardLayout';
 import { User } from '../../../types';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 import { Button } from '../../ui/button';
 import { Edit2, Save, X, User as UserIcon, Mail, Phone, Calendar, MapPin, Lock, Shield, Award } from 'lucide-react';
-
-const mockUser: User = {
-  id: '3',
-  name: 'Moon flower',
-  email: 'moon.flower@mybus.com',
-  role: 'controller',
-};
+import authService from '../../../services/authService';
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(true);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
   
-  // Split the name for editing
-  const nameParts = mockUser.name.split(' ');
-  const [firstName, setFirstName] = useState(nameParts[0] || '');
-  const [lastName, setLastName] = useState(nameParts.slice(1).join(' ') || '');
-  const [email, setEmail] = useState(mockUser.email);
-  const [mobile, setMobile] = useState('+212698765432');
-  const [dateOfBirth, setDateOfBirth] = useState('1988-07-12');
-  const [gender, setGender] = useState('Male');
-  const [address, setAddress] = useState('789 Boulevard Zerktouni, Rabat');
+  // Profile state
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [gender, setGender] = useState('');
+  const [address, setAddress] = useState('');
   const [badgeNumber, setBadgeNumber] = useState('CTRL-2020-MA-00123');
   const [zone, setZone] = useState('Zone A - Downtown');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // Original values for cancel
+  const [originalData, setOriginalData] = useState<any>({});
+
+  // Mock user for layout
+  const mockUser: User = {
+    id: '3',
+    name: `${firstName} ${lastName}`,
+    email,
+    role: 'controller',
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setFetchLoading(true);
+      const profile = await authService.getProfile();
+      setFirstName(profile.firstName || '');
+      setLastName(profile.lastName || '');
+      setEmail(profile.email || '');
+      setMobile(profile.mobile || '');
+      setDateOfBirth(profile.dateOfBirth || '');
+      setGender(profile.gender || '');
+      setAddress(profile.address || '');
+      setOriginalData(profile);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load profile');
+    } finally {
+      setFetchLoading(false);
+    }
+  };
+
   const handleSave = async () => {
     setLoading(true);
     setSuccess(false);
+    setError('');
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setLoading(false);
-    setSuccess(true);
-    setIsEditing(false);
-    
-    // Hide success message after 3 seconds
-    setTimeout(() => setSuccess(false), 3000);
+    try {
+      // Update profile
+      await authService.updateProfile({
+        firstName,
+        lastName,
+        mobile,
+        dateOfBirth,
+        gender,
+        address,
+      });
+
+      // Update password if provided
+      if (currentPassword && newPassword) {
+        if (newPassword !== confirmPassword) {
+          throw new Error('New passwords do not match');
+        }
+        await authService.changePassword({
+          currentPassword,
+          newPassword,
+        });
+      }
+
+      setSuccess(true);
+      setIsEditing(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+      // Refresh profile data
+      await fetchProfile();
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Failed to save changes');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
     // Reset to original values
-    setFirstName(nameParts[0] || '');
-    setLastName(nameParts.slice(1).join(' ') || '');
-    setEmail(mockUser.email);
-    setMobile('+212698765432');
-    setDateOfBirth('1988-07-12');
-    setGender('Male');
-    setAddress('789 Boulevard Zerktouni, Rabat');
+    setFirstName(originalData.firstName || '');
+    setLastName(originalData.lastName || '');
+    setEmail(originalData.email || '');
+    setMobile(originalData.mobile || '');
+    setDateOfBirth(originalData.dateOfBirth || '');
+    setGender(originalData.gender || '');
+    setAddress(originalData.address || '');
     setBadgeNumber('CTRL-2020-MA-00123');
     setZone('Zone A - Downtown');
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
+    setError('');
     setIsEditing(false);
   };
+
+  if (fetchLoading) {
+    return (
+      <DashboardLayout user={mockUser} notificationCount={0}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9B392D] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading profile...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout user={mockUser} notificationCount={0}>
@@ -115,6 +188,21 @@ export default function ProfilePage() {
             <div>
               <p className="font-semibold text-green-900">Profile updated successfully!</p>
               <p className="text-sm text-green-700">Your changes have been saved.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-red-900">Error</p>
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           </div>
         )}

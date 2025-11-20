@@ -4,6 +4,7 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
+import authService from "../../services/authService";
 
 const SignUp = (): JSX.Element => {
   const [firstName, setFirstName] = useState("");
@@ -23,19 +24,21 @@ const SignUp = (): JSX.Element => {
     setError(null);
     setLoading(true);
     try {
-      const payload = { firstName, lastName, email, mobile, password, dateOfBirth, gender, address };
-  const res = await fetch("http://localhost:8080/authMgtApi/users/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      await authService.register({
+        firstName,
+        lastName,
+        email,
+        mobile,
+        gender,
+        dateOfBirth,
+        address,
+        password,
+        role: 'PASSENGER' // Default role for registration
       });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || res.statusText);
-      }
-      navigate("/login");
+      // Navigate to account validation page
+      navigate("/account-validation", { state: { email } });
     } catch (err: any) {
-      setError(err.message || "Registration failed");
+      setError(err.response?.data?.message || err.message || "Registration failed");
     } finally {
       setLoading(false);
     }

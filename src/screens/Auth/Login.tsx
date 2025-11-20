@@ -4,9 +4,10 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
+import authService from "../../services/authService";
 
 const Login = (): JSX.Element => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,30 +18,21 @@ const Login = (): JSX.Element => {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8080/authMgtApi/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-      if (!res.ok) {
-        let errorMsg = res.statusText;
-        let rawText = await res.text();
-        try {
-          const data = JSON.parse(rawText);
-          errorMsg = data.message || errorMsg;
-        } catch {}
-        if (res.status === 401) {
-          errorMsg = "The username or password are incorrect.";
-        }
-        throw new Error(errorMsg);
+      const response = await authService.login({ email, password });
+      
+      // Navigate based on user role
+      const role = response.user.role;
+      if (role === 'ADMINISTRATOR') {
+        navigate('/admin');
+      } else if (role === 'DRIVER') {
+        navigate('/driver');
+      } else if (role === 'CONTROLLER') {
+        navigate('/controller');
+      } else {
+        navigate('/passenger');
       }
-      const data = await res.json();
-      if (data?.access_token) {
-        localStorage.setItem("access_token", data.access_token);
-      }
-      navigate("/");
     } catch (err: any) {
-      setError(err.message || "Login failed");
+      setError(err.response?.data?.message || err.message || "Login failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }
@@ -91,13 +83,13 @@ const Login = (): JSX.Element => {
             {/* Form */}
             <form onSubmit={submit} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-[#181e4b] font-medium">Email Address</Label>
+                <Label htmlFor="email" className="text-[#181e4b] font-medium">Email Address</Label>
                 <div className="relative group">
                   <Input
-                    id="username"
+                    id="email"
                     type="email"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     className="h-12 pl-4 pr-4 border-[#e0e0e0] focus:border-[#a54033] focus:ring-2 focus:ring-[#a54033]/20 transition-all duration-200 rounded-xl"
                   />
