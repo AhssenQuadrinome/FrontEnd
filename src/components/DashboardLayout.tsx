@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
 import { LogOut, Menu, X, Bell, Ticket, TrendingUp, Map, User as UserIcon } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User } from '../types';
+import authService from '../services/authService';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -21,6 +22,20 @@ export default function DashboardLayout({
   onMobileMenuToggle,
 }: DashboardLayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  const handleLogout = async () => {
+    try {
+      await authService.logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Still clear localStorage and redirect even if API call fails
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/login');
+    }
+  };
   const passengerNavigation = [
     { name: 'My Tickets', icon: <Ticket />, path: '/passenger/tickets' },
     { name: 'Buy Ticket', icon: <Ticket />, path: '/passenger/buy-ticket' },
@@ -101,7 +116,10 @@ export default function DashboardLayout({
                   {user.name.charAt(0)}
                 </span>
               </div>
-              <button className="ml-2 px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 font-medium text-sm border border-red-200 flex items-center gap-2 transition-all duration-200">
+              <button 
+                onClick={handleLogout}
+                className="ml-2 px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 font-medium text-sm border border-red-200 flex items-center gap-2 transition-all duration-200"
+              >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>
               </button>
@@ -149,7 +167,10 @@ export default function DashboardLayout({
             </nav>
 
             <div className="p-4 border-t border-gray-200">
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-xl transition-all duration-200 border border-red-200">
+              <button 
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-xl transition-all duration-200 border border-red-200"
+              >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>
               </button>

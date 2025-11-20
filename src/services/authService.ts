@@ -68,6 +68,27 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
+export interface UserGetResource {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  dateOfBirth?: string;
+  gender?: string;
+  address?: string;
+  role: string;
+  enabled: boolean;
+}
+
+export interface PageResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
 // Authentication Service
 const authService = {
   // Login
@@ -119,6 +140,20 @@ const authService = {
   // Change Password
   async changePassword(data: ChangePasswordRequest): Promise<void> {
     await api.patch(`${AUTH_BASE_URL}/users/change-password`, data);
+  },
+
+  // Get All Users (Admin only)
+  async getAllUsers(page: number = 0, size: number = 10): Promise<PageResponse<UserGetResource>> {
+    const response = await api.get(`${AUTH_BASE_URL}/admin/users`, {
+      params: { page, size }
+    });
+    return response.data;
+  },
+
+  // Create User As Admin (Admin only - can create DRIVER or CONTROLLER)
+  async createUserAsAdmin(data: RegisterRequest): Promise<UserGetResource> {
+    const response = await api.post(`${AUTH_BASE_URL}/admin/create`, data);
+    return response.data;
   },
 
   // Forgot Password
