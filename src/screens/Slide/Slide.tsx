@@ -1,4 +1,3 @@
-import React from "react";
 import { AboutUsSection } from "./sections/AboutUsSection";
 import { BookingFormSection } from "./sections/BookingFormSection";
 import { ContactUsSection } from "./sections/ContactUsSection";
@@ -28,13 +27,13 @@ export const Slide = (): JSX.Element => {
           />
 
           <div className="relative flex justify-center pt-16 md:pt-24 lg:pt-[162px]">
-            <div className="w-full max-w-[300px] md:max-w-[450px] lg:max-w-[596px] h-auto relative">
-              <div className="[font-family:'Wendy_One',Helvetica] font-normal text-[#181e4b] text-[40px] md:text-[70px] lg:text-[111.7px] tracking-[-2px] md:tracking-[-3px] lg:tracking-[-4.47px] leading-[45px] md:leading-[75px] lg:leading-[118.4px] whitespace-nowrap text-center">
+            <div className="w-full max-w-[280px] md:max-w-[400px] lg:max-w-[500px] h-auto relative">
+              <div className="[font-family:'Wendy_One',Helvetica] font-normal text-[#181e4b] text-[36px] md:text-[56px] lg:text-[80px] tracking-[-1.5px] md:tracking-[-2.5px] lg:tracking-[-3.5px] leading-[40px] md:leading-[60px] lg:leading-[84px] whitespace-nowrap text-center">
                 ABOUT US
               </div>
 
               <img
-                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[250px] md:w-[400px] lg:w-[594px] h-2 md:h-3 lg:h-4"
+                className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[220px] md:w-[350px] lg:w-[480px] h-1.5 md:h-2.5 lg:h-3"
                 alt="Decore"
                 src="/decore.png"
               />
@@ -47,13 +46,13 @@ export const Slide = (): JSX.Element => {
         <InfoCardsSection />
 
         <div className="relative w-full flex justify-center pt-16 md:pt-24 lg:pt-[100px] px-4 md:px-8">
-          <div className="w-full max-w-[320px] md:max-w-[500px] lg:max-w-[645px] h-auto relative">
-            <div className="[font-family:'Wendy_One',Helvetica] font-normal text-[#181e4b] text-[40px] md:text-[70px] lg:text-[111.7px] tracking-[-2px] md:tracking-[-3px] lg:tracking-[-4.47px] leading-[45px] md:leading-[75px] lg:leading-[118.4px] whitespace-nowrap text-center">
+          <div className="w-full max-w-[300px] md:max-w-[450px] lg:max-w-[550px] h-auto relative">
+            <div className="[font-family:'Wendy_One',Helvetica] font-normal text-[#181e4b] text-[36px] md:text-[56px] lg:text-[80px] tracking-[-1.5px] md:tracking-[-2.5px] lg:tracking-[-3.5px] leading-[40px] md:leading-[60px] lg:leading-[84px] whitespace-nowrap text-center">
               CONTACT US
             </div>
 
             <img
-              className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[250px] md:w-[400px] lg:w-[594px] h-2 md:h-3 lg:h-4"
+              className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-[220px] md:w-[350px] lg:w-[480px] h-1.5 md:h-2.5 lg:h-3"
               alt="Decore"
               src="/decore-1.png"
             />
