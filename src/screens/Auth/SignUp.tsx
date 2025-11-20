@@ -35,8 +35,12 @@ const SignUp = (): JSX.Element => {
         password,
         role: 'PASSENGER' // Default role for registration
       });
-      // Navigate to account validation page
-      navigate("/account-validation", { state: { email } });
+      
+      // Show success message
+      alert('Your account has been created successfully! Please check your email to activate your account.');
+      
+      // Redirect to login page
+      navigate("/login");
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || "Registration failed");
     } finally {

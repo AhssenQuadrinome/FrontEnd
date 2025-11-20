@@ -1,122 +1,152 @@
 import DashboardLayout from '../../DashboardLayout';
-import { User, Notification } from '../../../types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PurchasedTicket from '../../PurchasedTicket';
 import { QrCode } from 'lucide-react';
-
-const mockUser: User = {
-  id: '1',
-  name: 'Abderrahmane Essahih',
-  email: 'abderrahmane.essahih@example.com',
-  role: 'passenger',
-};
-
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'delay',
-    title: 'Line 15 Delayed',
-    message: 'Your bus is running 10 minutes late due to traffic.',
-    sentAt: '2025-10-28T13:45:00',
-    read: false,
-    priority: 'high',
-  },
-  {
-    id: '2',
-    type: 'service',
-    title: 'New Route Available',
-    message: 'Line 22 now serves the new business district.',
-    sentAt: '2025-10-27T09:00:00',
-    read: true,
-    priority: 'normal',
-  },
-];
+import authService from '../../../services/authService';
+import ticketService, { Ticket } from '../../../services/ticketService';
+import routeService, { Route } from '../../../services/routeService';
 
 export default function TicketsPage() {
+  const [user, setUser] = useState<any>(null);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [routes, setRoutes] = useState<Map<string, Route>>(new Map());
+  const [loading, setLoading] = useState(true);
   const [showQRModal, setShowQRModal] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState<any | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [qrCodeData, setQrCodeData] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Example purchased tickets data
-  const purchasedTickets = [
-    {
-      departure: 'Rabat Ville',
-      arrival: 'Agdal',
-      duration: '15 min',
-      connections: 1,
-      trainType: 'Express',
-      departureStation: 'Rabat Ville',
-      arrivalStation: 'Agdal',
-      price: 20,
-      currency: 'MAD',
-      status: 'active',
-      purchaseDate: '31-10-2025',
-      qrCode: 'QR123456789',
-      intermediateStations: [
-        { station: 'Manssour', time: '', trainType: '' },
-      ],
-    },
-    {
-      departure: 'Salé',
-      arrival: 'Hay Riad',
-      duration: '30 min',
-      connections: 2,
-      trainType: 'Express',
-      departureStation: 'Salé',
-      arrivalStation: 'Hay Riad',
-      price: 35,
-      currency: 'MAD',
-      status: 'expired',
-      purchaseDate: '30-10-2025',
-      qrCode: 'QR987654321',
-      intermediateStations: [
-        { station: 'Oudayas', time: '', trainType: '' },
-        { station: 'Akkari', time: '', trainType: '' },
-      ],
-    },
-    {
-      departure: 'Agdal',
-      arrival: 'Temara',
-      duration: '20 min',
-      connections: 1,
-      trainType: 'Express',
-      departureStation: 'Agdal',
-      arrivalStation: 'Temara',
-      price: 18,
-      currency: 'MAD',
-      status: 'active',
-      purchaseDate: '29-10-2025',
-      qrCode: 'QR555555555',
-      intermediateStations: [
-        { station: 'Youssoufia', time: '', trainType: '' },
-      ],
-    },
-    {
-      departure: 'Sidi Yaacoub',
-      arrival: 'Oudayas',
-      duration: '25 min',
-      connections: 2,
-      trainType: 'Express',
-      departureStation: 'Sidi Yaacoub',
-      arrivalStation: 'Oudayas',
-      price: 28,
-      currency: 'MAD',
-      status: 'active',
-      purchaseDate: '28-10-2025',
-      qrCode: 'QR444444444',
-      intermediateStations: [
-        { station: 'Manssour', time: '', trainType: '' },
-        { station: 'Rabat Ville', time: '', trainType: '' },
-      ],
-    },
-  ];
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  // Handler for QR button click
-  const handleShowQR = (ticket: any) => {
-    setSelectedTicket(ticket);
-    setShowQRModal(true);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      console.log('[TicketsPage] Fetching profile and tickets...');
+      
+      const [profile, ticketsData] = await Promise.all([
+        authService.getProfile(),
+        ticketService.getHistory(0, 50)
+      ]);
+      
+      console.log('[TicketsPage] Profile:', profile);
+      console.log('[TicketsPage] Tickets:', ticketsData);
+      
+      setUser(profile);
+      setTickets(ticketsData.content);
+      
+      // Fetch route details for all tickets
+      const uniqueRouteIds = [...new Set(ticketsData.content.map(t => t.routeId))];
+      console.log('[TicketsPage] Fetching routes:', uniqueRouteIds);
+      
+      const routeMap = new Map<string, Route>();
+      await Promise.all(
+        uniqueRouteIds.map(async (routeId) => {
+          try {
+            const route = await routeService.getRouteById(routeId);
+            routeMap.set(routeId, route);
+          } catch (err) {
+            console.error(`[TicketsPage] Failed to fetch route ${routeId}:`, err);
+          }
+        })
+      );
+      
+      setRoutes(routeMap);
+      console.log('[TicketsPage] Routes loaded:', routeMap);
+      console.log('[TicketsPage] Data loaded successfully');
+    } catch (err) {
+      console.error('[TicketsPage] Failed to fetch data:', err);
+      alert('Failed to load tickets. Please check if you are logged in and services are running.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleShowQR = async (ticket: any) => {
+    try {
+      const ticketId = typeof ticket === 'string' ? ticket : (ticket.id || ticket.userId);
+      const qrCode = await ticketService.getQRCode(ticketId);
+      setQrCodeData(qrCode);
+      setSelectedTicket(tickets.find(t => t.id === ticketId) || null);
+      setShowQRModal(true);
+    } catch (err) {
+      console.error('Failed to load QR code:', err);
+      alert('Failed to load QR code');
+    }
+  };
+
+  const currentUser = {
+    id: user?.id || '1',
+    name: user ? `${user.firstName} ${user.lastName}` : 'Guest',
+    email: user?.email || '',
+    role: 'passenger' as const,
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <DashboardLayout user={currentUser} notificationCount={0}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A54033] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Chargement...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show error if user failed to load
+  if (!user) {
+    return (
+      <DashboardLayout user={currentUser} notificationCount={0}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center text-red-600">
+            <p className="text-xl font-bold mb-2">❌ Erreur de chargement</p>
+            <p>Impossible de charger le profil. Vérifiez votre connexion.</p>
+            <button 
+              onClick={fetchData}
+              className="mt-4 px-4 py-2 bg-[#A54033] text-white rounded-lg hover:bg-[#8B3428]"
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Convert backend tickets to display format with route details
+  const purchasedTickets = tickets.map(ticket => {
+    const route = routes.get(ticket.routeId);
+    
+    return {
+      id: ticket.id,
+      departure: route?.startStation || 'Station de départ',
+      arrival: route?.endStation || 'Station d\'arrivée',
+      duration: route?.estimatedDuration ? `${route.estimatedDuration} min` : '30 min',
+      connections: route?.stations?.length || 0,
+      trainType: 'Bus',
+      departureStation: route?.startStation || 'Station de départ',
+      arrivalStation: route?.endStation || 'Station d\'arrivée',
+      price: ticket.price,
+      currency: 'DH',
+      status: (ticket.status.toLowerCase() as 'active' | 'expired'),
+      purchaseDate: new Date(ticket.purchaseDate).toLocaleDateString(),
+      qrCode: ticket.id,
+      intermediateStations: route?.stations?.map(s => ({
+        time: '',
+        station: s.name,
+        trainType: 'Bus'
+      })) || [],
+      userId: ticket.userId,
+      routeId: ticket.routeId,
+    };
+  });
+
+  // OLD MOCK DATA - Removed (backend integration complete)
 
   // Filtering logic
   const filteredTickets = purchasedTickets.filter(ticket => {
@@ -133,8 +163,8 @@ export default function TicketsPage() {
 
   return (
     <DashboardLayout
-      user={mockUser}
-      notificationCount={mockNotifications.filter((n) => !n.read).length}
+      user={currentUser}
+      notificationCount={0}
     >
       <div className="space-y-6">
         <h3 className="text-2xl font-bold text-navy text-center">My Purchased Tickets</h3>
@@ -215,9 +245,13 @@ export default function TicketsPage() {
                 <p className="text-gray-600 mb-6">Show this to the controller</p>
                 <div className="bg-cream p-8 rounded-xl mb-6">
                   <div className="w-64 h-64 mx-auto bg-white rounded-lg flex items-center justify-center border-4 border-navy">
-                    <QrCode className="w-48 h-48 text-navy" />
+                    {qrCodeData ? (
+                      <img src={qrCodeData} alt="QR Code" className="w-full h-full" />
+                    ) : (
+                      <QrCode className="w-48 h-48 text-navy" />
+                    )}
                   </div>
-                  <p className="mt-4 font-mono font-bold text-navy">{selectedTicket.qrCode}</p>
+                  <p className="mt-4 font-mono font-bold text-navy">{selectedTicket.id}</p>
                 </div>
                 <button
                   onClick={() => {

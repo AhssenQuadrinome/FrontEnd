@@ -1,15 +1,9 @@
 import DashboardLayout from '../../DashboardLayout';
-import React, { useState } from 'react';
-import { X, QrCode, Bus, Calendar, Zap, MapPin } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, QrCode, Bus, Zap, MapPin } from 'lucide-react';
+import authService from '../../../services/authService';
 
 // Mock types
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-}
-
 interface Subscription {
   id: string;
   type: 'monthly' | 'yearly';
@@ -34,12 +28,7 @@ interface Notification {
 }
 
 
-const mockUser: User = {
-  id: '1',
-  name: 'Abderrahmane Essahih',
-  email: 'abderrahmane.essahih@example.com',
-  role: 'passenger',
-};
+
 
 const mockSubscriptions: Subscription[] = [
   {
@@ -128,15 +117,51 @@ const passengerTypeConfig = {
 };
 
 export default function SubscriptionPage() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [showQR, setShowQR] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await authService.getProfile();
+        setUser(profile);
+      } catch (err) {
+        console.error('Failed to fetch profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const toggleQR = (id: string) => {
     setShowQR(showQR === id ? null : id);
   };
 
+  const currentUser = {
+    id: user?.id || '1',
+    name: user ? `${user.firstName} ${user.lastName}` : 'Guest',
+    email: user?.email || '',
+    role: 'passenger' as const,
+  };
+
+  if (loading || !user) {
+    return (
+      <DashboardLayout user={currentUser} notificationCount={0}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A54033] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Chargement...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout
-      user={mockUser}
+      user={currentUser}
       notificationCount={mockNotifications.filter((n) => !n.read).length}
     >
       <div className="space-y-6">

@@ -1,13 +1,8 @@
 import DashboardLayout from '../../DashboardLayout';
 import { Bell } from 'lucide-react';
-import { User, Notification } from '../../../types';
-
-const mockUser: User = {
-  id: '1',
-  name: 'Abderrahmane Essahih',
-  email: 'abderrahmane.essahih@example.com',
-  role: 'passenger',
-};
+import { Notification } from '../../../types';
+import { useState, useEffect } from 'react';
+import authService from '../../../services/authService';
 
 const mockNotifications: Notification[] = [
   {
@@ -31,9 +26,46 @@ const mockNotifications: Notification[] = [
 ];
 
 export default function NotificationsPage() {
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await authService.getProfile();
+        setUser(profile);
+      } catch (err) {
+        console.error('Failed to fetch profile:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  const currentUser = {
+    id: user?.id || '1',
+    name: user ? `${user.firstName} ${user.lastName}` : 'Guest',
+    email: user?.email || '',
+    role: 'passenger' as const,
+  };
+
+  if (loading || !user) {
+    return (
+      <DashboardLayout user={currentUser} notificationCount={0}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A54033] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Chargement...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout
-      user={mockUser}
+      user={currentUser}
       notificationCount={mockNotifications.filter((n) => !n.read).length}
     >
       <div className="space-y-6">

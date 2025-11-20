@@ -3,13 +3,18 @@ import api from './api';
 // Base URL for route endpoints
 const ROUTE_BASE_URL = '/routeMgtApi';
 
-// Types
+// Types matching backend exactly
 export interface Station {
-  id: string;
+  stationId: string;
   name: string;
-  order: number;
-  latitude: number;
-  longitude: number;
+  code: string;
+  sequenceOrder: number;
+  travelMinutesToNext: number | null;
+}
+
+export interface RouteConfig {
+  frequency?: number;
+  operatingHours?: string;
 }
 
 export interface Route {
@@ -23,10 +28,7 @@ export interface Route {
   distance: number;
   estimatedDuration: number;
   price: number;
-  config?: {
-    frequency?: number;
-    operatingHours?: string;
-  };
+  config?: RouteConfig;
   stations?: Station[];
 }
 

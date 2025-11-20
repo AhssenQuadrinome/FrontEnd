@@ -18,18 +18,18 @@ const Login = (): JSX.Element => {
     setError(null);
     setLoading(true);
     try {
-      const response = await authService.login({ email, password });
+      const response = await authService.login({ username: email, password });
       
       // Navigate based on user role
       const role = response.user.role;
       if (role === 'ADMINISTRATOR') {
-        navigate('/admin');
+        navigate('/admin/overview');
       } else if (role === 'DRIVER') {
-        navigate('/driver');
+        navigate('/driver/trips');
       } else if (role === 'CONTROLLER') {
-        navigate('/controller');
+        navigate('/controller/validate');
       } else {
-        navigate('/passenger');
+        navigate('/passenger/tickets');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || "Login failed. Please check your credentials.");

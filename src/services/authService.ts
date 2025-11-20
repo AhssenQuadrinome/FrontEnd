@@ -1,23 +1,28 @@
 import api from './api';
+import { jwtDecode } from 'jwt-decode';
 
 // Base URL for authentication endpoints
 const AUTH_BASE_URL = '/authMgtApi';
 
+// JWT Payload interface
+interface JWTPayload {
+  sub: string;        // User email/username
+  role: string;       // User role
+  userId: string;     // User ID
+  exp: number;        // Expiration
+  iat: number;        // Issued at
+}
+
 // Types
 export interface LoginRequest {
-  email: string;
+  username: string;  // Backend expects 'username' not 'email'
   password: string;
 }
 
 export interface LoginResponse {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    role: string;
-  };
+  access_token: string;
+  expires_in: number;
+  type: string;
 }
 
 export interface RegisterRequest {
@@ -27,11 +32,14 @@ export interface RegisterRequest {
   lastName: string;
   mobile: string;
   role: string;
+  dateOfBirth?: string;
+  gender?: string;
+  address?: string;
 }
 
 export interface ValidateAccountRequest {
-  email: string;
-  code: string;
+  activationKey: string;  // Backend expects 'activationKey'
+  password?: string;      // Optional password for first-time setup
 }
 
 export interface UserProfile {
@@ -63,13 +71,25 @@ export interface ChangePasswordRequest {
 // Authentication Service
 const authService = {
   // Login
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
+  async login(credentials: LoginRequest): Promise<{ token: string; user: any }> {
     const response = await api.post(`${AUTH_BASE_URL}/login`, credentials);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    const token = response.data.access_token;
+    
+    if (token) {
+      // Decode JWT to get user info
+      const decoded = jwtDecode<JWTPayload>(token);
+      const user = {
+        id: decoded.userId || decoded.sub,
+        email: decoded.sub,
+        role: decoded.role,
+      };
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      return { token, user };
     }
-    return response.data;
+    throw new Error('No token received');
   },
 
   // Register
@@ -77,14 +97,11 @@ const authService = {
     await api.post(`${AUTH_BASE_URL}/users/register`, data);
   },
 
-  // Validate Account
-  async validateAccount(data: ValidateAccountRequest): Promise<LoginResponse> {
-    const response = await api.post(`${AUTH_BASE_URL}/validate-account`, data);
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-    }
-    return response.data;
+  // Validate Account - Returns 204 No Content, user must login after
+  async validateAccount(data: ValidateAccountRequest): Promise<void> {
+    await api.post(`${AUTH_BASE_URL}/validate-account`, data);
+    // Backend returns 204 No Content on success
+    // User must login after account validation
   },
 
   // Get Profile

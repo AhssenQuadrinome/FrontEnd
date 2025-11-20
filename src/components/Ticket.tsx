@@ -25,6 +25,8 @@ interface TicketProps {
   passengers?: number;
   imminent?: boolean;
   intermediateStations?: IntermediateStation[];
+  routeId?: string; // Added for purchase
+  onPurchase?: (routeId: string, price: number) => void; // Added purchase handler
 }
 
 const Ticket = ({
@@ -40,8 +42,16 @@ const Ticket = ({
   passengers = 1,
   imminent = false,
   intermediateStations = [],
+  routeId,
+  onPurchase,
 }: TicketProps) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const handlePurchase = () => {
+    if (onPurchase && routeId) {
+      onPurchase(routeId, price);
+    }
+  };
   return (
   <Card className="max-w-2xl overflow-visible border-2 border-[#A54033]/70 border-dashed rounded-2xl shadow-lg p-6 overflow-visible bg-white/30 backdrop-blur-md relative">
     <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#A54033]/90 via-[#A54033]/60 to-[#A54033]/40 animate-[shimmer_2.5s_linear_infinite]" style={{maskImage:'linear-gradient(120deg,transparent 0%,#fff3 50%,transparent 100%)'}} />
@@ -100,7 +110,11 @@ const Ticket = ({
                 {price} {currency}
               </p>
             </div>
-            <Button className="w-full bg-[#A54033] hover:bg-navy-dark text-white font-semibold px-6 py-2 rounded-full shadow-md transition-all">
+            <Button 
+              onClick={handlePurchase}
+              disabled={!onPurchase || !routeId}
+              className="w-full bg-[#A54033] hover:bg-navy-dark text-white font-semibold px-6 py-2 rounded-full shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Book
             </Button>
           </div>

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from '../../DashboardLayout';
 import { Bus } from 'lucide-react';
-import { User, Notification } from '../../../types';
+import { Notification } from '../../../types';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
+import authService from '../../../services/authService';
 
 // Fetch real road route between coordinates using OSRM (free, no API key needed)
 async function fetchRoadRoute(coordinates: [number, number][]): Promise<[number, number][]> {
@@ -50,12 +51,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-const mockUser: User = {
-  id: '1',
-  name: 'Abderrahmane Essahih',
-  email: 'abderrahmane.essahih@example.com',
-  role: 'passenger',
-};
+
 
 // Exact Rabat station coordinates on roads (verified to be on actual streets)
 const rabatStations = [
@@ -221,10 +217,27 @@ const mockNotifications: Notification[] = [
 ];
 
 export default function TripsPage() {
+	const [user, setUser] = useState<any>(null);
+	const [loading, setLoading] = useState(true);
 	const [buses, setBuses] = useState(initialBuses);
 	const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
 	const [realRoutes, setRealRoutes] = useState<Record<string, Array<[number, number]>>>({});
 	const [isLoadingRoutes, setIsLoadingRoutes] = useState(true);
+	
+	// Fetch user profile
+	useEffect(() => {
+		const fetchProfile = async () => {
+			try {
+				const profile = await authService.getProfile();
+				setUser(profile);
+			} catch (err) {
+				console.error('Failed to fetch profile:', err);
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchProfile();
+	}, []);
 	
 	// Fetch real road routes on mount
 	useEffect(() => {
@@ -304,9 +317,29 @@ export default function TripsPage() {
   const filteredBuses = selectedRoute
     ? buses.filter(b => b.route === selectedRoute)
     : buses;
+  
+  const currentUser = {
+    id: user?.id || '1',
+    name: user ? `${user.firstName} ${user.lastName}` : 'Guest',
+    email: user?.email || '',
+    role: 'passenger' as const,
+  };
+
+  if (loading || !user) {
+    return (
+      <DashboardLayout user={currentUser} notificationCount={0}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A54033] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Chargement...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
     
 	return (
-		<DashboardLayout user={mockUser} notificationCount={mockNotifications.filter((n) => !n.read).length}>
+		<DashboardLayout user={currentUser} notificationCount={mockNotifications.filter((n) => !n.read).length}>
 			<div className="space-y-4">
 				{/* Header with Route Filters */}
 				<div className="flex items-center justify-between">
