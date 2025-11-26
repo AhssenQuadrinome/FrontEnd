@@ -1,12 +1,12 @@
-import { ChevronDownIcon, MenuIcon, XIcon } from "lucide-react";
+import { ChevronDownIcon, MenuIcon, XIcon, Home, Users, Mail } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "../../../../components/ui/button";
 import { Link } from "react-router-dom";
 
 const navigationItems = [
-  { label: "HOME", id: "home" },
-  { label: "ABOUT", id: "about" },
-  { label: "CONTACT", id: "contact" },
+  { label: "HOME", id: "home", icon: Home },
+  { label: "ABOUT", id: "about", icon: Users },
+  { label: "CONTACT", id: "contact", icon: Mail },
 ];
 
 export const HeroSection = (): JSX.Element => {
@@ -65,22 +65,26 @@ export const HeroSection = (): JSX.Element => {
         />
 
       <nav className="hidden lg:flex items-center gap-3 xl:gap-5 flex-1 justify-center bg-transparent">
-        {navigationItems.map((item) => (
-          <Button
-            key={item.label}
-            variant={item.id === activeId ? "default" : "ghost"}
-            onClick={() => scrollToSection(item.id)}
-            className={`h-auto rounded-full px-5 xl:px-6 py-2 text-xs transition-all duration-300 transform hover:scale-105 ${
-              item.id === activeId
-                ? "bg-gradient-to-r from-[#df6951] to-[#a54033] hover:from-[#e07a67] hover:to-[#b64d40] text-white shadow-md shadow-[#df6951]/25 border-none"
-                : "text-[#a54033] bg-white/80 hover:bg-white hover:shadow-sm border border-gray-200"
-            }`}
-          >
-            <span className="[font-family:'Inter',Helvetica] font-bold tracking-wide leading-normal">
-              {item.label}
-            </span>
-          </Button>
-        ))}
+        {navigationItems.map((item) => {
+          const IconComponent = item.icon;
+          return (
+            <Button
+              key={item.label}
+              variant={item.id === activeId ? "default" : "ghost"}
+              onClick={() => scrollToSection(item.id)}
+              className={`h-auto rounded-full px-5 xl:px-6 py-2 text-xs transition-all duration-300 transform hover:scale-105 ${
+                item.id === activeId
+                  ? "bg-gradient-to-r from-[#df6951] to-[#a54033] hover:from-[#e07a67] hover:to-[#b64d40] text-white shadow-md shadow-[#df6951]/25 border-none"
+                  : "text-[#a54033] bg-white/80 hover:bg-white hover:shadow-sm border border-gray-200"
+              }`}
+            >
+              <IconComponent className="w-4 h-4 mr-2" />
+              <span className="[font-family:'Inter',Helvetica] font-bold tracking-wide leading-normal">
+                {item.label}
+              </span>
+            </Button>
+          );
+        })}
       </nav>
 
       <div className="hidden lg:flex items-center gap-3 xl:gap-4 flex-shrink-0">
@@ -128,25 +132,29 @@ export const HeroSection = (): JSX.Element => {
       {mobileMenuOpen && (
         <div className="absolute top-full left-0 right-0 bg-white/98 backdrop-blur-xl shadow-xl p-5 lg:hidden z-50 border-b border-gray-100 animate-in slide-in-from-top duration-300">
           <nav className="flex flex-col gap-2.5 mb-5">
-            {navigationItems.map((item) => (
-              <Button
-                key={item.label}
-                variant={item.id === activeId ? "default" : "outline"}
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  scrollToSection(item.id);
-                }}
-                className={`h-auto rounded-lg px-5 py-2.5 w-full text-sm transition-all duration-300 ${
-                  item.id === activeId
-                    ? "bg-gradient-to-r from-[#df6951] to-[#a54033] text-white border-none shadow-sm"
-                    : "border-2 border-gray-200 text-[#a54033] bg-white hover:bg-gray-50 hover:border-[#df6951]"
-                }`}
-              >
-                <span className="[font-family:'Inter',Helvetica] font-bold tracking-wide leading-normal">
-                  {item.label}
-                </span>
-              </Button>
-            ))}
+            {navigationItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                <Button
+                  key={item.label}
+                  variant={item.id === activeId ? "default" : "outline"}
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    scrollToSection(item.id);
+                  }}
+                  className={`h-auto rounded-lg px-5 py-2.5 w-full text-sm transition-all duration-300 ${
+                    item.id === activeId
+                      ? "bg-gradient-to-r from-[#df6951] to-[#a54033] text-white border-none shadow-sm"
+                      : "border-2 border-gray-200 text-[#a54033] bg-white hover:bg-gray-50 hover:border-[#df6951]"
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4 mr-2" />
+                  <span className="[font-family:'Inter',Helvetica] font-bold tracking-wide leading-normal">
+                    {item.label}
+                  </span>
+                </Button>
+              );
+            })}
           </nav>
           <div className="flex flex-col gap-2.5 pt-3 border-t border-gray-200">
             <Link to="/login" className="w-full">
