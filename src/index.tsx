@@ -12,6 +12,7 @@ import DriverDashboard from "./components/driver/DriverDashboard";
 import PassengerDashboard from "./components/passenger/PassengerDashboard";
 import OverviewPage from "./components/admin/pages/OverviewPage";
 import UsersPage from "./components/admin/pages/UsersPage";
+import StationsPage from "./components/admin/pages/StationsPage";
 import TicketsPage from "./components/admin/pages/TicketsPage";
 import RoutesPage from "./components/admin/pages/RoutesPage";
 import GeolocationPage from "./components/admin/pages/GeolocationPage";
@@ -34,10 +35,12 @@ import DriverProfilePage from "./components/driver/pages/ProfilePage";
 import ControllerValidateTicketsPage from "./components/controller/pages/ValidateTicketsPage";
 import ControllerReportsPage from "./components/controller/pages/ReportsPage";
 import ControllerProfilePage from "./components/controller/pages/ProfilePage";
+import { Toaster } from "./components/ui/toaster";
 
 createRoot(document.getElementById("app") as HTMLElement).render(
   <StrictMode>
     <BrowserRouter>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<Slide />} />
         <Route path="/login" element={<Login />} />
@@ -50,6 +53,7 @@ createRoot(document.getElementById("app") as HTMLElement).render(
   {/* Admin dashboard split pages */}
   <Route path="/admin/overview" element={<OverviewPage />} />
   <Route path="/admin/users" element={<UsersPage />} />
+  <Route path="/admin/stations" element={<StationsPage />} />
   <Route path="/admin/tickets" element={<TicketsPage />} />
   <Route path="/admin/routes" element={<RoutesPage />} />
   <Route path="/admin/geolocation" element={<GeolocationPage />} />

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { LogOut, Menu, X, Bell, Ticket, TrendingUp, Map, User as UserIcon } from 'lucide-react';
+import { LogOut, Menu, X, Bell, Ticket, TrendingUp, Map, MapPin, User as UserIcon } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User } from '../types';
 import authService from '../services/authService';
@@ -47,6 +47,7 @@ export default function DashboardLayout({
   const adminNavigation = [
     { name: 'Overview', icon: <TrendingUp />, path: '/admin/overview' },
     { name: 'Users', icon: <UserIcon />, path: '/admin/users' },
+    { name: 'Stations', icon: <MapPin />, path: '/admin/stations' },
     { name: 'Tickets', icon: <Ticket />, path: '/admin/tickets' },
     { name: 'Routes', icon: <Map />, path: '/admin/routes' },
     { name: 'Geolocation', icon: <Map />, path: '/admin/geolocation' },

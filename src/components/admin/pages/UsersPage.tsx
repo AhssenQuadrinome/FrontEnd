@@ -7,6 +7,7 @@ import { Input } from "../../ui/input";
 import { Label } from "../../ui/label";
 import { Button } from "../../ui/button";
 import { cn } from "../../../lib/utils";
+import { toast } from "sonner";
 
 export default function UsersPage() {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -135,12 +136,18 @@ export default function UsersPage() {
 			setShowCreateDialog(false);
 			
 			// Show success message
-			alert('User created successfully! An activation email has been sent.');
+			toast.success('User created successfully!', {
+				description: 'An activation email has been sent to the user.',
+			});
 			
 			// Refresh users list
 			fetchUsers();
 		} catch (err: any) {
-			setCreateError(err.response?.data?.message || err.message || "Failed to create user");
+			const errorMessage = err.response?.data?.message || err.message || "Failed to create user";
+			setCreateError(errorMessage);
+			toast.error('Failed to create user', {
+				description: errorMessage,
+			});
 		} finally {
 			setCreateLoading(false);
 		}
