@@ -11,6 +11,7 @@ export interface Station {
   address: string;
   latitude: number;
   longitude: number;
+  active?: boolean;
 }
 
 export interface CreateStationRequest {
@@ -27,6 +28,7 @@ export interface UpdateStationRequest {
   address?: string;
   latitude?: number;
   longitude?: number;
+  active?: boolean;
 }
 
 export interface PageResponse<T> {

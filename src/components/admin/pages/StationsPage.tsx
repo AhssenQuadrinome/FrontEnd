@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from "../../DashboardLayout";
-import { Plus, Search, Edit, Trash2, X, MapPin } from "lucide-react";
+import { Plus, Search, Edit, X, MapPin, Power, PowerOff } from "lucide-react";
 import { User } from "../../../types";
 import stationService, { Station, CreateStationRequest } from "../../../services/stationService";
 import authService from "../../../services/authService";
@@ -34,6 +34,7 @@ function LocationMarker({ position, setPosition }: { position: [number, number] 
 
 export default function StationsPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [stations, setStations] = useState<Station[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -233,12 +234,41 @@ export default function StationsPage() {
     }
   };
   
-  // Filter stations based on search query
-  const filteredStations = stations.filter(station =>
-    station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    station.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    station.address?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Toggle station status
+  const handleToggleStatus = async (station: Station) => {
+    try {
+      const newStatus = station.active !== false; // Default to true if undefined
+      const updateRequest = {
+        active: !newStatus
+      };
+      
+      await stationService.updateStation(station.id, updateRequest);
+      
+      toast.success(`Station ${!newStatus ? 'activated' : 'deactivated'}!`, {
+        description: `${station.name} is now ${!newStatus ? 'active' : 'inactive'}.`,
+      });
+      
+      fetchStations(); // Refresh stations from backend
+    } catch (err: any) {
+      console.error('Failed to toggle station status:', err);
+      toast.error('Failed to update station status', {
+        description: err.response?.data?.message || 'Please try again',
+      });
+    }
+  };
+  
+  // Filter stations based on search query and status
+  const filteredStations = stations.filter(station => {
+    const matchesSearch = station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      station.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      station.address?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || 
+      (statusFilter === "active" && station.active !== false) ||
+      (statusFilter === "inactive" && station.active === false);
+    
+    return matchesSearch && matchesStatus;
+  });
   
   if (loading) {
     return (
@@ -288,7 +318,7 @@ export default function StationsPage() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
@@ -299,6 +329,38 @@ export default function StationsPage() {
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#A54033] focus:border-transparent"
               />
             </div>
+            {/* <div className="flex gap-2">
+              <button
+                onClick={() => setStatusFilter("all")}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  statusFilter === "all"
+                    ? "bg-[#A54033] text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setStatusFilter("active")}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  statusFilter === "active"
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setStatusFilter("inactive")}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  statusFilter === "inactive"
+                    ? "bg-gray-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                Inactive
+              </button>
+            </div> */}
           </div>
         </div>
 
@@ -332,52 +394,69 @@ export default function StationsPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredStations.map((station) => (
-                    <tr
-                      key={station.id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-[#A54033] to-[#8B2F24] rounded-full flex items-center justify-center text-white font-semibold shadow-sm">
-                            <MapPin className="w-5 h-5" />
+                  filteredStations.map((station) => {
+                    const isInactive = station.active === false;
+                    return (
+                      <tr
+                        key={station.id}
+                        className={`hover:bg-gray-50 transition-colors ${isInactive ? 'bg-gray-100 opacity-60' : ''}`}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold shadow-sm ${
+                              isInactive 
+                                ? 'bg-gradient-to-br from-gray-400 to-gray-500' 
+                                : 'bg-gradient-to-br from-[#A54033] to-[#8B2F24]'
+                            }`}>
+                              <MapPin className="w-5 h-5" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className={`font-medium ${isInactive ? 'text-gray-500' : 'text-gray-900'}`}>
+                                {station.name}
+                              </span>
+                              {isInactive && (
+                                <span className="text-xs text-gray-500 font-medium">Inactive</span>
+                              )}
+                            </div>
                           </div>
-                          <span className="font-medium text-gray-900">
-                            {station.name}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 text-sm">
-                        {station.code}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 text-sm">
-                        {station.address || '-'}
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 text-sm">
-                        <div className="flex flex-col">
-                          <span>Lat: {station.latitude.toFixed(6)}</span>
-                          <span>Lng: {station.longitude.toFixed(6)}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-center gap-2">
-                          <button 
-                            onClick={() => handleEditStation(station)}
-                            className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                            title="Edit station"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button 
-                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete station"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className={`px-6 py-4 text-sm ${isInactive ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {station.code}
+                        </td>
+                        <td className={`px-6 py-4 text-sm ${isInactive ? 'text-gray-400' : 'text-gray-600'}`}>
+                          {station.address || '-'}
+                        </td>
+                        <td className={`px-6 py-4 text-sm ${isInactive ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <div className="flex flex-col">
+                            <span>Lat: {station.latitude.toFixed(6)}</span>
+                            <span>Lng: {station.longitude.toFixed(6)}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button 
+                              onClick={() => handleEditStation(station)}
+                              className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                              title="Edit station"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            {/* <button 
+                              onClick={() => handleToggleStatus(station)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                isInactive
+                                  ? 'text-gray-600 hover:text-green-600 hover:bg-green-50'
+                                  : 'text-gray-600 hover:text-orange-600 hover:bg-orange-50'
+                              }`}
+                              title={isInactive ? 'Activate station' : 'Deactivate station'}
+                            >
+                              {isInactive ? <Power className="w-4 h-4" /> : <PowerOff className="w-4 h-4" />}
+                            </button> */}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
