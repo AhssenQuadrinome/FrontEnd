@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Users,
   Bus,
   MapPin,
   Plus,
@@ -9,7 +8,6 @@ import {
   Map,
   Clock,
   DollarSign,
-  Activity,
   Navigation,
   ChevronUp,
   ChevronDown,
@@ -47,17 +45,14 @@ interface Route {
   number: string;
   stations: number;
   stationsList?: Station[];
-  status: "active" | "inactive" | "maintenance";
+  status: "active" | "inactive";
   buses: number;
   startPoint: string;
   endPoint: string;
   avgDuration: string;
   frequency: string;
   distance?: number;
-  occupancy?: number;
-  onTime?: number;
-  passengers?: number;
-  revenue?: number;
+  price?: number; // Actual price from backend
 }
 
 export default function RoutesPage() {
@@ -161,10 +156,7 @@ export default function RoutesPage() {
       avgDuration: durationMin < 60 ? `${durationMin} min` : `${Math.floor(durationMin / 60)}h ${durationMin % 60}min`,
       frequency: frequencyMin < 60 ? `Toutes les ${frequencyMin} min` : `Toutes les ${Math.floor(frequencyMin / 60)}h`,
       distance: backendRoute.distance,
-      occupancy: 70, // Mock data for now
-      onTime: 85, // Mock data for now
-      passengers: 1000, // Mock data for now
-      revenue: Math.round(backendRoute.price * 100), // Mock calculation
+      price: backendRoute.price, // Actual price from backend
     };
   };
 
@@ -280,7 +272,7 @@ export default function RoutesPage() {
         endStation: formData.endPoint || "",
         distance: formData.distance || 10,
         estimatedDuration: estimatedDuration,
-        price: (formData.revenue || 2500) / 1000, // Convert back to price
+        price: formData.price || 0, // Use actual price field
         config: {
           ruleType: ServicePeriodType.DAILY,
           frequencyMinutes: frequencyMinutes,
@@ -443,6 +435,28 @@ export default function RoutesPage() {
                     />
                   </div>
                 </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Distance (km)</Label>
+                    <Input 
+                      type="number"
+                      step="0.1"
+                      placeholder="ex: 15.5"
+                      value={formData.distance || ''}
+                      onChange={(e) => setFormData({...formData, distance: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Prix (TND)</Label>
+                    <Input 
+                      type="number"
+                      step="0.01"
+                      placeholder="ex: 2.50"
+                      value={formData.price || ''}
+                      onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                    />
+                  </div>
+                </div>
                 <div>
                   <Label>Statut</Label>
                   <Select 
@@ -455,7 +469,6 @@ export default function RoutesPage() {
                     <SelectContent>
                       <SelectItem value="active">Active</SelectItem>
                       <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="maintenance">Maintenance</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -633,9 +646,9 @@ export default function RoutesPage() {
                     </div>
                   </div>
                   <span className={`px-4 py-2 rounded-full text-xs font-bold shadow-lg ${
-                    route.status === 'active' ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' :
-                    route.status === 'maintenance' ? 'bg-gradient-to-r from-yellow-500 to-orange-600 text-white' :
-                    'bg-gradient-to-r from-gray-500 to-gray-600 text-white'
+                    route.status === 'active' 
+                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' 
+                      : 'bg-gradient-to-r from-gray-500 to-gray-600 text-white'
                   }`}>
                     {route.status.toUpperCase()}
                   </span>
@@ -735,7 +748,6 @@ export default function RoutesPage() {
                                 <div className="absolute top-full mt-2 left-1/2 transform -translate-x-1/2 opacity-0 group-hover/station:opacity-100 transition-opacity duration-200 pointer-events-none z-20">
                                   <div className="bg-[#9B392D] text-white px-3 py-2 rounded-lg shadow-xl text-xs font-semibold whitespace-nowrap">
                                     <div className="font-bold">{station.name}</div>
-                                    <div className="text-[10px] text-white/70 mt-1">Attente: 5 min</div>
                                     <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-[#9B392D] rotate-45"></div>
                                   </div>
                                 </div>
@@ -743,10 +755,9 @@ export default function RoutesPage() {
                               
                               {/* Station name */}
                               <div className="mt-3 text-center">
-                                <span className="text-[9px] font-bold text-[#9B392D] block max-w-[70px] leading-tight truncate">
+                                <span className="text-xs font-bold text-[#9B392D] block max-w-[90px] leading-tight">
                                   {station.name}
                                 </span>
-                                <span className="text-[8px] text-[#7d2e24] mt-0.5 block">{Math.floor(Math.random() * 300 + 200)} pics</span>
                               </div>
                             </div>
                           );
@@ -764,36 +775,29 @@ export default function RoutesPage() {
                 </div>
               </div>
 
-              {/* Metrics Dashboard */}
+              {/* Route Information */}
               <div className="p-6 bg-gradient-to-br from-white to-[#9B392D]/5">
-                <div className="grid grid-cols-4 gap-2 mb-6">
-                  <div className="bg-white border-l-4 border-[#9B392D] rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <Activity className="w-5 h-5 text-[#9B392D]" />
-                      <span className="text-xs font-semibold text-gray-500">Occupancy</span>
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  <div className="bg-white border-l-4 border-[#9B392D] rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="w-5 h-5 text-[#9B392D]" />
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Prix</span>
                     </div>
-                    <p className="text-xl font-bold text-[#9B392D] mt-1">{route.occupancy || 70}%</p>
+                    <p className="text-2xl font-bold text-[#9B392D]">{route.price?.toFixed(2) || '0.00'} TND</p>
                   </div>
-                  <div className="bg-white border-l-4 border-blue-600 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <Clock className="w-5 h-5 text-blue-600" />
-                      <span className="text-xs font-semibold text-gray-500">On Time</span>
+                  <div className="bg-white border-l-4 border-blue-600 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MapPin className="w-5 h-5 text-blue-600" />
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Distance</span>
                     </div>
-                    <p className="text-xl font-bold text-blue-600 mt-1">{route.onTime || 85}%</p>
+                    <p className="text-2xl font-bold text-blue-600">{route.distance?.toFixed(1) || 'N/A'} km</p>
                   </div>
-                  <div className="bg-white border-l-4 border-emerald-600 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <Users className="w-5 h-5 text-emerald-600" />
-                      <span className="text-xs font-semibold text-gray-500">Daily</span>
+                  <div className="bg-white border-l-4 border-emerald-600 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Bus className="w-5 h-5 text-emerald-600" />
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Bus</span>
                     </div>
-                    <p className="text-xl font-bold text-emerald-600 mt-1">{route.passengers || 1000}</p>
-                  </div>
-                  <div className="bg-white border-l-4 border-green-600 rounded-lg p-3 shadow-sm hover:shadow-md transition-shadow">
-                    <div className="flex items-center justify-between">
-                      <DollarSign className="w-5 h-5 text-green-600" />
-                      <span className="text-xs font-semibold text-gray-500">Revenue</span>
-                    </div>
-                    <p className="text-xl font-bold text-green-600 mt-1">${route.revenue || 2500}</p>
+                    <p className="text-2xl font-bold text-emerald-600">{route.buses}</p>
                   </div>
                 </div>
 
@@ -883,29 +887,24 @@ export default function RoutesPage() {
                   </div>
                 </div>
 
-                {/* Performance Metrics */}
+                {/* Route Information */}
                 <div>
-                  <h4 className="font-semibold mb-3 text-lg">Métriques de Performance</h4>
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="bg-gradient-to-br from-[#9B392D]/5 to-[#9B392D]/10 rounded-xl p-4 text-center border border-[#9B392D]/20">
-                      <Activity className="w-8 h-8 text-[#7d2e24] mx-auto mb-2" />
-                      <p className="text-3xl font-bold text-[#9B392D]">{selectedRoute.occupancy || 70}%</p>
-                      <p className="text-xs text-[#7d2e24] font-semibold mt-1">Taux d'Occupation</p>
+                  <h4 className="font-semibold mb-3 text-lg">Informations de la Ligne</h4>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="bg-gradient-to-br from-[#9B392D]/5 to-[#9B392D]/10 rounded-xl p-5 text-center border border-[#9B392D]/20">
+                      <DollarSign className="w-8 h-8 text-[#7d2e24] mx-auto mb-2" />
+                      <p className="text-3xl font-bold text-[#9B392D]">{selectedRoute.price?.toFixed(2) || '0.00'} TND</p>
+                      <p className="text-xs text-[#7d2e24] font-semibold mt-1">Prix du Ticket</p>
                     </div>
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center border border-blue-200">
-                      <Clock className="w-8 h-8 text-blue-700 mx-auto mb-2" />
-                      <p className="text-3xl font-bold text-blue-900">{selectedRoute.onTime || 85}%</p>
-                      <p className="text-xs text-blue-700 font-semibold mt-1">Ponctualité</p>
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 text-center border border-blue-200">
+                      <MapPin className="w-8 h-8 text-blue-700 mx-auto mb-2" />
+                      <p className="text-3xl font-bold text-blue-900">{selectedRoute.distance?.toFixed(1) || 'N/A'} km</p>
+                      <p className="text-xs text-blue-700 font-semibold mt-1">Distance Totale</p>
                     </div>
-                    <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 text-center border border-emerald-200">
-                      <Users className="w-8 h-8 text-emerald-700 mx-auto mb-2" />
-                      <p className="text-3xl font-bold text-emerald-900">{selectedRoute.passengers || 1000}</p>
-                      <p className="text-xs text-emerald-700 font-semibold mt-1">Passagers/Jour</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center border border-green-200">
-                      <DollarSign className="w-8 h-8 text-green-700 mx-auto mb-2" />
-                      <p className="text-3xl font-bold text-green-900">${selectedRoute.revenue || 2500}</p>
-                      <p className="text-xs text-green-700 font-semibold mt-1">Revenu/Jour</p>
+                    <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-5 text-center border border-emerald-200">
+                      <Bus className="w-8 h-8 text-emerald-700 mx-auto mb-2" />
+                      <p className="text-3xl font-bold text-emerald-900">{selectedRoute.buses}</p>
+                      <p className="text-xs text-emerald-700 font-semibold mt-1">Nombre de Bus</p>
                     </div>
                   </div>
                 </div>
