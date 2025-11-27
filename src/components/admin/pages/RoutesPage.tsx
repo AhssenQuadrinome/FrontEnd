@@ -49,8 +49,8 @@ interface Route {
   buses: number;
   startPoint: string;
   endPoint: string;
-  avgDuration: string;
-  frequency: string;
+  avgDuration: number; // Duration in minutes
+  frequency: number; // Frequency in minutes
   distance?: number;
   price?: number; // Actual price from backend
 }
@@ -153,8 +153,8 @@ export default function RoutesPage() {
       buses: backendRoute.config?.busCount || 0,
       startPoint: backendRoute.startStation,
       endPoint: backendRoute.endStation,
-      avgDuration: durationMin < 60 ? `${durationMin} min` : `${Math.floor(durationMin / 60)}h ${durationMin % 60}min`,
-      frequency: frequencyMin < 60 ? `Toutes les ${frequencyMin} min` : `Toutes les ${Math.floor(frequencyMin / 60)}h`,
+      avgDuration: durationMin,
+      frequency: frequencyMin,
       distance: backendRoute.distance,
       price: backendRoute.price, // Actual price from backend
     };
@@ -250,17 +250,20 @@ export default function RoutesPage() {
       
       if (!formData.stationsList || formData.stationsList.length < 2) {
         toast.error('Validation Error', {
-          description: 'Please select at least 2 stations for the route',
+          description: 'Please select at least 2 stations (departure and arrival)',
         });
+        setSaveLoading(false);
         return;
       }
       
-      // Parse frequency and duration
-      const frequencyMatch = formData.frequency?.match(/(\d+)/);
-      const frequencyMinutes = frequencyMatch ? parseInt(frequencyMatch[1]) : 15;
+      // Use numeric values directly
+      const frequencyMinutes = formData.frequency || 15;
+      const estimatedDuration = formData.avgDuration || 30;
       
-      const durationMatch = formData.avgDuration?.match(/(\d+)/);
-      const estimatedDuration = durationMatch ? parseInt(durationMatch[1]) : 30;
+      // Automatically derive start and end stations from the stationsList
+      const sortedStations = [...formData.stationsList].sort((a, b) => a.order - b.order);
+      const startStation = sortedStations[0]?.name || "";
+      const endStation = sortedStations[sortedStations.length - 1]?.name || "";
       
       // Prepare backend request
       const backendRequest = {
@@ -268,8 +271,8 @@ export default function RoutesPage() {
         name: formData.name || "",
         description: "",
         active: formData.status === "active",
-        startStation: formData.startPoint || "",
-        endStation: formData.endPoint || "",
+        startStation: startStation,
+        endStation: endStation,
         distance: formData.distance || 10,
         estimatedDuration: estimatedDuration,
         price: formData.price || 0, // Use actual price field
@@ -312,7 +315,7 @@ export default function RoutesPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cette ligne?")) {
+    if (confirm("Are you sure you want to delete this route?")) {
       // TODO: Implement DELETE /routeMgtApi/routes/{id}
       toast.info('Delete functionality', {
         description: `Backend delete endpoint not yet implemented for route ${id}`,
@@ -343,7 +346,7 @@ export default function RoutesPage() {
     <DashboardLayout user={currentUser || { id: "", name: "Admin", email: "", role: "admin" }} notificationCount={3}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-2xl font-bold text-gray-900">Gestion des Lignes</h3>
+          <h3 className="text-2xl font-bold text-gray-900">Route Management</h3>
           <Dialog open={showModal} onOpenChange={setShowModal}>
             <DialogTrigger asChild>
               <Button 
@@ -351,67 +354,40 @@ export default function RoutesPage() {
                 className="bg-[#9B392D] text-white hover:bg-[#7d2e24] shadow-lg"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Créer une Nouvelle Ligne
+                Create New Route
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold">
-                  {editingRoute ? 'Modifier la Ligne' : 'Créer une Nouvelle Ligne'}
+                  {editingRoute ? 'Edit Route' : 'Create New Route'}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Nom de la Ligne</Label>
+                    <Label>Route Name</Label>
                     <Input 
-                      placeholder="ex: Ligne Agdal-Océan" 
+                      placeholder="e.g., Agdal-Ocean Line" 
                       value={formData.name || ''}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
                     />
                   </div>
                   <div>
-                    <Label>Numéro de Ligne</Label>
+                    <Label>Route Number</Label>
                     <Input 
-                      placeholder="ex: 15" 
+                      placeholder="e.g., 15" 
                       value={formData.number || ''}
                       onChange={(e) => setFormData({...formData, number: e.target.value})}
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
-                    <Label>Point de Départ</Label>
-                    <Input 
-                      placeholder="ex: Agdal" 
-                      value={formData.startPoint || ''}
-                      onChange={(e) => setFormData({...formData, startPoint: e.target.value})}
-                    />
-                  </div>
-                  <div>
-                    <Label>Point d'Arrivée</Label>
-                    <Input 
-                      placeholder="ex: Océan (Plage de Rabat)" 
-                      value={formData.endPoint || ''}
-                      onChange={(e) => setFormData({...formData, endPoint: e.target.value})}
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Nombre de Stations</Label>
+                    <Label>Number of Buses</Label>
                     <Input 
                       type="number" 
-                      placeholder="ex: 12"
-                      value={formData.stations || ''}
-                      onChange={(e) => setFormData({...formData, stations: parseInt(e.target.value) || 0})}
-                    />
-                  </div>
-                  <div>
-                    <Label>Nombre de Bus</Label>
-                    <Input 
-                      type="number" 
-                      placeholder="ex: 8"
+                      placeholder="e.g., 8"
                       value={formData.buses || ''}
                       onChange={(e) => setFormData({...formData, buses: parseInt(e.target.value) || 0})}
                     />
@@ -419,19 +395,21 @@ export default function RoutesPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label>Durée Moyenne</Label>
+                    <Label>Average Duration (minutes)</Label>
                     <Input 
-                      placeholder="ex: 45 min"
+                      type="number"
+                      placeholder="e.g., 45"
                       value={formData.avgDuration || ''}
-                      onChange={(e) => setFormData({...formData, avgDuration: e.target.value})}
+                      onChange={(e) => setFormData({...formData, avgDuration: parseInt(e.target.value) || 0})}
                     />
                   </div>
                   <div>
-                    <Label>Fréquence</Label>
+                    <Label>Frequency (minutes)</Label>
                     <Input 
-                      placeholder="ex: Toutes les 15 min"
+                      type="number"
+                      placeholder="e.g., 15"
                       value={formData.frequency || ''}
-                      onChange={(e) => setFormData({...formData, frequency: e.target.value})}
+                      onChange={(e) => setFormData({...formData, frequency: parseInt(e.target.value) || 0})}
                     />
                   </div>
                 </div>
@@ -441,30 +419,30 @@ export default function RoutesPage() {
                     <Input 
                       type="number"
                       step="0.1"
-                      placeholder="ex: 15.5"
+                      placeholder="e.g., 15.5"
                       value={formData.distance || ''}
                       onChange={(e) => setFormData({...formData, distance: parseFloat(e.target.value) || 0})}
                     />
                   </div>
                   <div>
-                    <Label>Prix (TND)</Label>
+                    <Label>Price (DHS)</Label>
                     <Input 
                       type="number"
                       step="0.01"
-                      placeholder="ex: 2.50"
+                      placeholder="e.g., 2.50"
                       value={formData.price || ''}
                       onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
                     />
                   </div>
                 </div>
                 <div>
-                  <Label>Statut</Label>
+                  <Label>Status</Label>
                   <Select 
                     value={formData.status} 
                     onValueChange={(value: any) => setFormData({...formData, status: value})}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner le statut" />
+                      <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="active">Active</SelectItem>
@@ -475,14 +453,17 @@ export default function RoutesPage() {
 
                 {/* Station Management Section */}
                 <div className="border-t pt-4 mt-4">
-                  <Label className="text-lg font-bold mb-3 block">Gestion des Stations</Label>
+                  <Label className="text-lg font-bold mb-2 block">Station Management</Label>
+                  <p className="text-sm text-gray-600 mb-3">
+                    The first station will be the departure point and the last will be the arrival point.
+                  </p>
                   
                   {/* Add Station Search */}
                   <div className="mb-4">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input 
-                        placeholder="Rechercher une station (nom ou code)..."
+                        placeholder="Search station (name or code)..."
                         value={stationSearchQuery}
                         onChange={(e) => setStationSearchQuery(e.target.value)}
                         className="pl-10"
@@ -491,7 +472,7 @@ export default function RoutesPage() {
                     {stationSearchQuery && (
                       <div className="mt-2 max-h-48 overflow-y-auto border rounded-lg bg-white shadow-lg">
                         {filteredStations.length === 0 ? (
-                          <p className="text-sm text-gray-500 p-3">Aucune station trouvée</p>
+                          <p className="text-sm text-gray-500 p-3">No station found</p>
                         ) : (
                           filteredStations.slice(0, 10).map(station => (
                             <button
@@ -507,7 +488,7 @@ export default function RoutesPage() {
                                   <p className="text-xs text-gray-500">{station.code} • {station.address}</p>
                                 </div>
                                 {(formData.stationsList || []).some(s => s.id === station.id) && (
-                                  <span className="text-xs text-green-600">Ajoutée</span>
+                                  <span className="text-xs text-green-600">Added</span>
                                 )}
                               </div>
                             </button>
@@ -521,7 +502,7 @@ export default function RoutesPage() {
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {(formData.stationsList || []).length === 0 ? (
                       <p className="text-sm text-gray-500 italic text-center py-4">
-                        Aucune station ajoutée. Commencez par ajouter des stations.
+                        No stations added. Start by adding stations.
                       </p>
                     ) : (
                       (formData.stationsList || [])
@@ -561,10 +542,10 @@ export default function RoutesPage() {
                                 </span>
                                 <span className="font-medium text-gray-900">{station.name}</span>
                                 {index === 0 && (
-                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Départ</span>
+                                  <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Departure</span>
                                 )}
                                 {index === (formData.stationsList || []).length - 1 && (
-                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Arrivée</span>
+                                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Arrival</span>
                                 )}
                               </div>
                             </div>
@@ -598,10 +579,10 @@ export default function RoutesPage() {
                   {saveLoading ? (
                     <div className="flex items-center justify-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>En cours...</span>
+                      <span>Saving...</span>
                     </div>
                   ) : (
-                    editingRoute ? 'Mettre à Jour' : 'Créer la Ligne'
+                    editingRoute ? 'Update Route' : 'Create Route'
                   )}
                 </Button>
               </div>
@@ -781,9 +762,9 @@ export default function RoutesPage() {
                   <div className="bg-white border-l-4 border-[#9B392D] rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-2 mb-2">
                       <DollarSign className="w-5 h-5 text-[#9B392D]" />
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Prix</span>
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Price</span>
                     </div>
-                    <p className="text-2xl font-bold text-[#9B392D]">{route.price?.toFixed(2) || '0.00'} TND</p>
+                    <p className="text-2xl font-bold text-[#9B392D]">{route.price?.toFixed(2) || '0.00'} DHS</p>
                   </div>
                   <div className="bg-white border-l-4 border-blue-600 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-2 mb-2">
@@ -795,7 +776,7 @@ export default function RoutesPage() {
                   <div className="bg-white border-l-4 border-emerald-600 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-center gap-2 mb-2">
                       <Bus className="w-5 h-5 text-emerald-600" />
-                      <span className="text-xs font-semibold text-gray-500 uppercase">Bus</span>
+                      <span className="text-xs font-semibold text-gray-500 uppercase">Buses</span>
                     </div>
                     <p className="text-2xl font-bold text-emerald-600">{route.buses}</p>
                   </div>
@@ -809,9 +790,11 @@ export default function RoutesPage() {
                       <p className="text-xs font-black text-[#9B392D] uppercase tracking-wider">Schedule</p>
                     </div>
                     <p className="text-base text-[#9B392D] font-bold mb-1">
-                      {route.avgDuration}
+                      {route.avgDuration < 60 ? `${route.avgDuration} min` : `${Math.floor(route.avgDuration / 60)}h ${route.avgDuration % 60}min`}
                     </p>
-                    <p className="text-xs text-[#7d2e24] font-semibold">{route.frequency}</p>
+                    <p className="text-xs text-[#7d2e24] font-semibold">
+                      {route.frequency < 60 ? `Every ${route.frequency} min` : `Every ${Math.floor(route.frequency / 60)}h`}
+                    </p>
                   </div>
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 shadow-md">
                     <div className="flex items-center gap-2 mb-3">
@@ -832,7 +815,7 @@ export default function RoutesPage() {
                     onClick={() => setSelectedRoute(route)}
                   >
                     <Map className="w-4 h-4 mr-2" />
-                    Voir Détails
+                    View Details
                   </Button>
                   <Button 
                     onClick={() => handleEdit(route)}
@@ -868,43 +851,43 @@ export default function RoutesPage() {
                 {/* Route Information */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-[#9B392D]/5 rounded-xl p-4 border-2 border-[#9B392D]/20">
-                    <p className="text-sm font-semibold text-[#7d2e24] mb-2">Détails de la Ligne</p>
+                    <p className="text-sm font-semibold text-[#7d2e24] mb-2">Route Details</p>
                     <div className="space-y-2 text-sm text-gray-700">
-                      <div><span className="font-semibold">Départ:</span> {selectedRoute.startPoint}</div>
-                      <div><span className="font-semibold">Arrivée:</span> {selectedRoute.endPoint}</div>
+                      <div><span className="font-semibold">Departure:</span> {selectedRoute.startPoint}</div>
+                      <div><span className="font-semibold">Arrival:</span> {selectedRoute.endPoint}</div>
                       <div><span className="font-semibold">Distance:</span> {selectedRoute.distance || 10} km</div>
                       <div><span className="font-semibold">Stations:</span> {selectedRoute.stations}</div>
                     </div>
                   </div>
                   <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200">
-                    <p className="text-sm font-semibold text-blue-700 mb-2">Infos Opérationnelles</p>
+                    <p className="text-sm font-semibold text-blue-700 mb-2">Operational Info</p>
                     <div className="space-y-2 text-sm text-gray-700">
-                      <div><span className="font-semibold">Durée:</span> {selectedRoute.avgDuration}</div>
-                      <div><span className="font-semibold">Fréquence:</span> {selectedRoute.frequency}</div>
-                      <div><span className="font-semibold">Bus:</span> {selectedRoute.buses}</div>
-                      <div><span className="font-semibold">Statut:</span> <span className="capitalize">{selectedRoute.status}</span></div>
+                      <div><span className="font-semibold">Duration:</span> {selectedRoute.avgDuration < 60 ? `${selectedRoute.avgDuration} min` : `${Math.floor(selectedRoute.avgDuration / 60)}h ${selectedRoute.avgDuration % 60}min`}</div>
+                      <div><span className="font-semibold">Frequency:</span> {selectedRoute.frequency < 60 ? `Every ${selectedRoute.frequency} min` : `Every ${Math.floor(selectedRoute.frequency / 60)}h`}</div>
+                      <div><span className="font-semibold">Buses:</span> {selectedRoute.buses}</div>
+                      <div><span className="font-semibold">Status:</span> <span className="capitalize">{selectedRoute.status}</span></div>
                     </div>
                   </div>
                 </div>
 
                 {/* Route Information */}
                 <div>
-                  <h4 className="font-semibold mb-3 text-lg">Informations de la Ligne</h4>
+                  <h4 className="font-semibold mb-3 text-lg">Route Information</h4>
                   <div className="grid grid-cols-3 gap-4">
                     <div className="bg-gradient-to-br from-[#9B392D]/5 to-[#9B392D]/10 rounded-xl p-5 text-center border border-[#9B392D]/20">
                       <DollarSign className="w-8 h-8 text-[#7d2e24] mx-auto mb-2" />
-                      <p className="text-3xl font-bold text-[#9B392D]">{selectedRoute.price?.toFixed(2) || '0.00'} TND</p>
-                      <p className="text-xs text-[#7d2e24] font-semibold mt-1">Prix du Ticket</p>
+                      <p className="text-3xl font-bold text-[#9B392D]">{selectedRoute.price?.toFixed(2) || '0.00'} DHS</p>
+                      <p className="text-xs text-[#7d2e24] font-semibold mt-1">Ticket Price</p>
                     </div>
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-5 text-center border border-blue-200">
                       <MapPin className="w-8 h-8 text-blue-700 mx-auto mb-2" />
                       <p className="text-3xl font-bold text-blue-900">{selectedRoute.distance?.toFixed(1) || 'N/A'} km</p>
-                      <p className="text-xs text-blue-700 font-semibold mt-1">Distance Totale</p>
+                      <p className="text-xs text-blue-700 font-semibold mt-1">Total Distance</p>
                     </div>
                     <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-5 text-center border border-emerald-200">
                       <Bus className="w-8 h-8 text-emerald-700 mx-auto mb-2" />
                       <p className="text-3xl font-bold text-emerald-900">{selectedRoute.buses}</p>
-                      <p className="text-xs text-emerald-700 font-semibold mt-1">Nombre de Bus</p>
+                      <p className="text-xs text-emerald-700 font-semibold mt-1">Number of Buses</p>
                     </div>
                   </div>
                 </div>
@@ -916,14 +899,14 @@ export default function RoutesPage() {
                     className="flex-1 bg-gradient-to-r from-[#9B392D] to-[#7d2e24] text-white hover:from-[#7d2e24] hover:to-[#5d1f1a]"
                   >
                     <Edit className="w-4 h-4 mr-2" />
-                    Modifier la Ligne
+                    Edit Route
                   </Button>
                   <Button 
                     onClick={() => setSelectedRoute(null)}
                     variant="outline"
                     className="flex-1"
                   >
-                    Fermer
+                    Close
                   </Button>
                 </div>
               </div>
