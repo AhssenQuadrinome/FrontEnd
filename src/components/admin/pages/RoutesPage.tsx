@@ -4,7 +4,6 @@ import {
   MapPin,
   Plus,
   Edit,
-  Trash2,
   Map,
   Clock,
   DollarSign,
@@ -13,6 +12,8 @@ import {
   ChevronDown,
   X,
   Search,
+  Power,
+  PowerOff,
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
@@ -53,6 +54,7 @@ interface Route {
   frequency: number; // Frequency in minutes
   distance?: number;
   price?: number; // Actual price from backend
+  firstDeparture?: string; // First departure time HH:mm
 }
 
 export default function RoutesPage() {
@@ -157,6 +159,7 @@ export default function RoutesPage() {
       frequency: frequencyMin,
       distance: backendRoute.distance,
       price: backendRoute.price, // Actual price from backend
+      firstDeparture: backendRoute.config?.firstDeparture ? backendRoute.config.firstDeparture.substring(0, 5) : undefined, // Convert HH:mm:ss to HH:mm
     };
   };
 
@@ -281,7 +284,7 @@ export default function RoutesPage() {
           frequencyMinutes: frequencyMinutes,
           enabled: true,
           busCount: formData.buses || 1,
-          firstDeparture: "06:00:00",
+          firstDeparture: formData.firstDeparture ? `${formData.firstDeparture}:00` : "06:00:00", // Convert HH:mm to HH:mm:ss
           startDate: new Date().toISOString().split('T')[0],
           endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         },
@@ -314,11 +317,24 @@ export default function RoutesPage() {
     }
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this route?")) {
-      // TODO: Implement DELETE /routeMgtApi/routes/{id}
-      toast.info('Delete functionality', {
-        description: `Backend delete endpoint not yet implemented for route ${id}`,
+  const handleToggleStatus = async (route: Route) => {
+    try {
+      const newStatus = route.status === 'active' ? 'inactive' : 'active';
+      const updateRequest = {
+        active: newStatus === 'active'
+      };
+      
+      await routeService.updateRoute(route.id, updateRequest);
+      
+      toast.success(`Route ${newStatus === 'active' ? 'activated' : 'deactivated'}!`, {
+        description: `${route.name} is now ${newStatus}.`,
+      });
+      
+      fetchRoutes(); // Refresh routes from backend
+    } catch (err: any) {
+      console.error('Failed to toggle route status:', err);
+      toast.error('Failed to update route status', {
+        description: err.response?.data?.message || 'Please try again',
       });
     }
   };
@@ -435,20 +451,30 @@ export default function RoutesPage() {
                     />
                   </div>
                 </div>
-                <div>
-                  <Label>Status</Label>
-                  <Select 
-                    value={formData.status} 
-                    onValueChange={(value: any) => setFormData({...formData, status: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>First Departure</Label>
+                    <Input 
+                      type="time"
+                      value={formData.firstDeparture || ''}
+                      onChange={(e) => setFormData({...formData, firstDeparture: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label>Status</Label>
+                    <Select 
+                      value={formData.status} 
+                      onValueChange={(value: any) => setFormData({...formData, status: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Station Management Section */}
@@ -792,9 +818,14 @@ export default function RoutesPage() {
                     <p className="text-base text-[#9B392D] font-bold mb-1">
                       {route.avgDuration < 60 ? `${route.avgDuration} min` : `${Math.floor(route.avgDuration / 60)}h ${route.avgDuration % 60}min`}
                     </p>
-                    <p className="text-xs text-[#7d2e24] font-semibold">
+                    <p className="text-xs text-[#7d2e24] font-semibold mb-1">
                       {route.frequency < 60 ? `Every ${route.frequency} min` : `Every ${Math.floor(route.frequency / 60)}h`}
                     </p>
+                    {route.firstDeparture && (
+                      <p className="text-xs text-[#7d2e24] font-semibold">
+                        First: {route.firstDeparture}
+                      </p>
+                    )}
                   </div>
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 shadow-md">
                     <div className="flex items-center gap-2 mb-3">
@@ -824,10 +855,15 @@ export default function RoutesPage() {
                     <Edit className="w-4 h-4" />
                   </Button>
                   <Button 
-                    onClick={() => handleDelete(route.id)}
-                    className="bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 shadow-lg"
+                    onClick={() => handleToggleStatus(route)}
+                    className={`shadow-lg ${
+                      route.status === 'active'
+                        ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800'
+                        : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800'
+                    }`}
+                    title={route.status === 'active' ? 'Deactivate route' : 'Activate route'}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    {route.status === 'active' ? <PowerOff className="w-4 h-4" /> : <Power className="w-4 h-4" />}
                   </Button>
                 </div>
               </div>
@@ -864,6 +900,9 @@ export default function RoutesPage() {
                     <div className="space-y-2 text-sm text-gray-700">
                       <div><span className="font-semibold">Duration:</span> {selectedRoute.avgDuration < 60 ? `${selectedRoute.avgDuration} min` : `${Math.floor(selectedRoute.avgDuration / 60)}h ${selectedRoute.avgDuration % 60}min`}</div>
                       <div><span className="font-semibold">Frequency:</span> {selectedRoute.frequency < 60 ? `Every ${selectedRoute.frequency} min` : `Every ${Math.floor(selectedRoute.frequency / 60)}h`}</div>
+                      {selectedRoute.firstDeparture && (
+                        <div><span className="font-semibold">First Departure:</span> {selectedRoute.firstDeparture}</div>
+                      )}
                       <div><span className="font-semibold">Buses:</span> {selectedRoute.buses}</div>
                       <div><span className="font-semibold">Status:</span> <span className="capitalize">{selectedRoute.status}</span></div>
                     </div>
