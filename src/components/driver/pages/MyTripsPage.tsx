@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   MapPin,
   AlertTriangle,
@@ -10,13 +10,7 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '../../DashboardLayout';
 import { User, Trip } from '../../../types';
-
-const mockUser: User = {
-  id: '2',
-  name: 'Hiba EL OUERKHAOUI',
-  email: 'hiba.elouerkaoui@mybus.com',
-  role: 'driver',
-};
+import authService from '../../../services/authService';
 
 const mockTrips: Trip[] = [
   {
@@ -58,6 +52,36 @@ export default function MyTripsPage() {
   const [showIncidentModal, setShowIncidentModal] = useState(false);
   const [incidentType, setIncidentType] = useState<'delay' | 'technical' | 'accident' | 'other'>('delay');
   const [incidentDescription, setIncidentDescription] = useState('');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      authService.getProfile()
+        .then(profile => {
+          const roleMap: Record<string, "admin" | "driver" | "controller" | "passenger"> = {
+            'ADMINISTRATOR': 'admin',
+            'DRIVER': 'driver',
+            'CONTROLLER': 'controller',
+            'PASSENGER': 'passenger'
+          };
+          setCurrentUser({
+            id: profile.id,
+            name: `${profile.firstName} ${profile.lastName}`,
+            email: profile.email,
+            role: roleMap[profile.role] || profile.role.toLowerCase() as "admin" | "driver" | "controller" | "passenger"
+          });
+        })
+        .catch(() => {
+          setCurrentUser({
+            id: user.id,
+            name: "Driver User",
+            email: user.email,
+            role: 'driver'
+          });
+        });
+    }
+  }, []);
 
   const handleStartTrip = (tripId: string) => {
     console.log('Starting trip:', tripId);
@@ -90,7 +114,7 @@ export default function MyTripsPage() {
 
   return (
     <>
-      <DashboardLayout user={mockUser} notificationCount={2}>
+      <DashboardLayout user={currentUser || { id: "", name: "Driver", email: "", role: "driver" }} notificationCount={2}>
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <h3 className="text-2xl font-bold text-navy">My Trips & Schedule</h3>

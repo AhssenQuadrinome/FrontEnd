@@ -1,20 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CheckCircle } from 'lucide-react';
 import DashboardLayout from '../../DashboardLayout';
 import { User } from '../../../types';
-
-const mockUser: User = {
-  id: '2',
-  name: 'Hiba EL OUERKHAOUI',
-  email: 'hiba.elouerkaoui@mybus.com',
-  role: 'driver',
-};
+import authService from '../../../services/authService';
 
 export default function GeolocationPage() {
   const [sharingLocation, setSharingLocation] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      authService.getProfile()
+        .then(profile => {
+          const roleMap: Record<string, "admin" | "driver" | "controller" | "passenger"> = {
+            'ADMINISTRATOR': 'admin',
+            'DRIVER': 'driver',
+            'CONTROLLER': 'controller',
+            'PASSENGER': 'passenger'
+          };
+          setCurrentUser({
+            id: profile.id,
+            name: `${profile.firstName} ${profile.lastName}`,
+            email: profile.email,
+            role: roleMap[profile.role] || profile.role.toLowerCase() as "admin" | "driver" | "controller" | "passenger"
+          });
+        })
+        .catch(() => {
+          setCurrentUser({
+            id: user.id,
+            name: "Driver User",
+            email: user.email,
+            role: 'driver'
+          });
+        });
+    }
+  }, []);
 
   return (
-    <DashboardLayout user={mockUser} notificationCount={2}>
+    <DashboardLayout user={currentUser || { id: "", name: "Driver", email: "", role: "driver" }} notificationCount={2}>
       <div className="space-y-6">
         <h3 className="text-2xl font-bold text-navy">Real-Time Geolocation</h3>
 
