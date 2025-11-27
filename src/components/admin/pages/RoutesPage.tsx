@@ -1,12 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Users,
-  Ticket,
-  TrendingUp,
   Bus,
-  AlertTriangle,
   MapPin,
-  Bell,
   Plus,
   Edit,
   Trash2,
@@ -18,6 +14,7 @@ import {
   ChevronUp,
   ChevronDown,
   X,
+  Search,
 } from 'lucide-react';
 import { Button } from '../../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../../ui/dialog';
@@ -25,6 +22,9 @@ import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select';
 import DashboardLayout from '../../DashboardLayout';
+import routeService, { Route as BackendRoute, StationOption, ServicePeriodType } from '../../../services/routeService';
+import authService from '../../../services/authService';
+import { toast } from 'sonner';
 
 export type UserRole = "admin" | "driver" | "controller" | "passenger";
 
@@ -34,13 +34,6 @@ interface User {
   email: string;
   role: UserRole;
 }
-
-const mockUser: User = {
-  id: "4",
-  name: "Admin User",
-  email: "ourbusway2025@outlook.com",
-  role: "admin",
-};
 
 interface Station {
   id: string;
@@ -67,148 +60,136 @@ interface Route {
   revenue?: number;
 }
 
-const initialRoutes: Route[] = [
-  {
-    id: "1",
-    name: "Ligne Agdal-Océan",
-    number: "15",
-    stations: 12,
-    stationsList: [
-      { id: "s1", name: "Agdal", order: 0 },
-      { id: "s2", name: "Hay Riad", order: 1 },
-      { id: "s3", name: "Place Pietri", order: 2 },
-      { id: "s4", name: "Boulevard Mohamed V", order: 3 },
-      { id: "s5", name: "Bab El Had", order: 4 },
-      { id: "s6", name: "Océan (Plage de Rabat)", order: 5 },
-    ],
-    status: "active",
-    buses: 8,
-    startPoint: "Agdal",
-    endPoint: "Océan (Plage de Rabat)",
-    avgDuration: "45 min",
-    frequency: "Toutes les 15 min",
-    distance: 12.5,
-    occupancy: 78,
-    onTime: 92,
-    passengers: 1847,
-    revenue: 4523,
-  },
-  {
-    id: "2",
-    name: "Ligne Hassan-Témara",
-    number: "8",
-    stations: 10,
-    stationsList: [
-      { id: "s1", name: "Tour Hassan", order: 0 },
-      { id: "s2", name: "Gare Rabat Ville", order: 1 },
-      { id: "s3", name: "Place Melilla", order: 2 },
-      { id: "s4", name: "Akkari", order: 3 },
-      { id: "s5", name: "Témara Plage", order: 4 },
-    ],
-    status: "active",
-    buses: 6,
-    startPoint: "Tour Hassan",
-    endPoint: "Témara Plage",
-    avgDuration: "35 min",
-    frequency: "Toutes les 20 min",
-    distance: 8.2,
-    occupancy: 65,
-    onTime: 88,
-    passengers: 1243,
-    revenue: 3142,
-  },
-  {
-    id: "3",
-    name: "Ligne Salé-Souissi",
-    number: "22",
-    stations: 15,
-    stationsList: [
-      { id: "s1", name: "Bab Lamrissa (Salé)", order: 0 },
-      { id: "s2", name: "Médina Salé", order: 1 },
-      { id: "s3", name: "Pont Moulay Hassan", order: 2 },
-      { id: "s4", name: "Souissi", order: 3 },
-      { id: "s5", name: "Hay Riad", order: 4 },
-    ],
-    status: "maintenance",
-    buses: 10,
-    startPoint: "Bab Lamrissa (Salé)",
-    endPoint: "Hay Riad",
-    avgDuration: "55 min",
-    frequency: "Toutes les 10 min",
-    distance: 15.8,
-    occupancy: 45,
-    onTime: 75,
-    passengers: 980,
-    revenue: 2456,
-  },
-  {
-    id: "4",
-    name: "Ligne Kamra-Aviation",
-    number: "30",
-    stations: 14,
-    stationsList: [
-      { id: "s1", name: "Kamra", order: 0 },
-      { id: "s2", name: "Hassan", order: 1 },
-      { id: "s3", name: "Yacoub El Mansour", order: 2 },
-      { id: "s4", name: "Quartier Aviation", order: 3 },
-    ],
-    status: "active",
-    buses: 7,
-    startPoint: "Kamra",
-    endPoint: "Quartier Aviation",
-    avgDuration: "40 min",
-    frequency: "Toutes les 18 min",
-    distance: 10.3,
-    occupancy: 72,
-    onTime: 89,
-    passengers: 1520,
-    revenue: 3800,
-  },
-  {
-    id: "5",
-    name: "Ligne Youssoufia-Médina",
-    number: "17",
-    stations: 9,
-    stationsList: [
-      { id: "s1", name: "Youssoufia", order: 0 },
-      { id: "s2", name: "Diour Jamaa", order: 1 },
-      { id: "s3", name: "Place Joulane", order: 2 },
-      { id: "s4", name: "Médina de Rabat", order: 3 },
-    ],
-    status: "active",
-    buses: 5,
-    startPoint: "Youssoufia",
-    endPoint: "Médina de Rabat",
-    avgDuration: "30 min",
-    frequency: "Toutes les 25 min",
-    distance: 7.5,
-    occupancy: 82,
-    onTime: 94,
-    passengers: 1650,
-    revenue: 4100,
-  },
-];
-
 export default function RoutesPage() {
-  const navigate = (path: string) => console.log('Navigate to:', path);
-  const [routes, setRoutes] = useState<Route[]>(initialRoutes);
+  // Backend state
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [availableStations, setAvailableStations] = useState<StationOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [saveLoading, setSaveLoading] = useState(false);
+  
+  // UI state
   const [showModal, setShowModal] = useState(false);
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [formData, setFormData] = useState<Partial<Route>>({});
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [stationInput, setStationInput] = useState("");
+  const [stationSearchQuery, setStationSearchQuery] = useState("");
 
-  const navigation = [
-    { name: "Overview", icon: <TrendingUp />, active: false, onClick: () => navigate("/admin/overview") },
-    { name: "Users", icon: <Users />, active: false, onClick: () => navigate("/admin/users") },
-    { name: "Tickets", icon: <Ticket />, active: false, onClick: () => navigate("/admin/tickets") },
-    { name: "Routes", icon: <Bus />, active: true, onClick: () => navigate("/admin/routes") },
-    { name: "Geolocation", icon: <MapPin />, active: false, onClick: () => navigate("/admin/geolocation") },
-    { name: "Incidents", icon: <AlertTriangle />, active: false, onClick: () => navigate("/admin/incidents") },
-    { name: "Notifications", icon: <Bell />, active: false, onClick: () => navigate("/admin/notifications") },
-  ];
+  // Fetch user profile
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      authService.getProfile()
+        .then(profile => {
+          const roleMap: Record<string, UserRole> = {
+            'ADMINISTRATOR': 'admin',
+            'DRIVER': 'driver',
+            'CONTROLLER': 'controller',
+            'PASSENGER': 'passenger'
+          };
+          setCurrentUser({
+            id: profile.id,
+            name: `${profile.firstName} ${profile.lastName}`,
+            email: profile.email,
+            role: roleMap[profile.role] || profile.role.toLowerCase() as UserRole
+          });
+        })
+        .catch(() => {
+          setCurrentUser({
+            id: user.id,
+            name: "Admin User",
+            email: user.email,
+            role: 'admin'
+          });
+        });
+    }
+  }, []);
+  
+  // Fetch routes and stations from backend
+  useEffect(() => {
+    fetchRoutes();
+    fetchStations();
+  }, []);
+  
+  const fetchRoutes = async () => {
+    try {
+      setLoading(true);
+      const response = await routeService.getAllRoutes(0, 100);
+      // Convert backend routes to UI format
+      const uiRoutes: Route[] = response.content.map(r => convertBackendToUIRoute(r));
+      setRoutes(uiRoutes);
+    } catch (err: any) {
+      console.error('Failed to fetch routes:', err);
+      toast.error('Failed to load routes', {
+        description: err.response?.data?.message || 'Please try again',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const fetchStations = async () => {
+    try {
+      const response = await routeService.getAllStations(0, 1000);
+      setAvailableStations(response.content);
+    } catch (err: any) {
+      console.error('Failed to fetch stations:', err);
+      toast.error('Failed to load stations');
+    }
+  };
+  
+  // Convert backend route to UI route format
+  const convertBackendToUIRoute = (backendRoute: BackendRoute): Route => {
+    const frequencyMin = backendRoute.config?.frequencyMinutes || 15;
+    const durationMin = backendRoute.estimatedDuration || 0;
+    
+    return {
+      id: backendRoute.id,
+      name: backendRoute.name,
+      number: backendRoute.number,
+      stations: backendRoute.stations?.length || 0,
+      stationsList: backendRoute.stations?.map(s => ({
+        id: s.stationId,
+        name: s.name,
+        order: s.sequenceOrder
+      })) || [],
+      status: backendRoute.active ? "active" : "inactive",
+      buses: backendRoute.config?.busCount || 0,
+      startPoint: backendRoute.startStation,
+      endPoint: backendRoute.endStation,
+      avgDuration: durationMin < 60 ? `${durationMin} min` : `${Math.floor(durationMin / 60)}h ${durationMin % 60}min`,
+      frequency: frequencyMin < 60 ? `Toutes les ${frequencyMin} min` : `Toutes les ${Math.floor(frequencyMin / 60)}h`,
+      distance: backendRoute.distance,
+      occupancy: 70, // Mock data for now
+      onTime: 85, // Mock data for now
+      passengers: 1000, // Mock data for now
+      revenue: Math.round(backendRoute.price * 100), // Mock calculation
+    };
+  };
 
-  const handleAddStation = () => {
+  const handleAddStation = (stationId?: string) => {
+    // If stationId provided, add from available stations
+    if (stationId) {
+      const station = availableStations.find(s => s.id === stationId);
+      if (station && !(formData.stationsList || []).find(s => s.id === stationId)) {
+        const currentStations = formData.stationsList || [];
+        const newStation: Station = {
+          id: station.id,
+          name: station.name,
+          order: currentStations.length,
+        };
+        setFormData({
+          ...formData,
+          stationsList: [...currentStations, newStation],
+          stations: currentStations.length + 1,
+        });
+        setStationSearchQuery("");
+      }
+      return;
+    }
+    
+    // Legacy: add by name (for manual input)
     if (!stationInput.trim()) return;
     
     const currentStations = formData.stationsList || [];
@@ -271,43 +252,103 @@ export default function RoutesPage() {
     setShowModal(true);
   };
 
-  const handleSave = () => {
-    if (editingRoute) {
-      setRoutes(routes.map(r => r.id === editingRoute.id ? { ...r, ...formData } : r));
-    } else {
-      const newRoute: Route = {
-        id: String(routes.length + 1),
-        name: formData.name || "",
+  const handleSave = async () => {
+    try {
+      setSaveLoading(true);
+      
+      if (!formData.stationsList || formData.stationsList.length < 2) {
+        toast.error('Validation Error', {
+          description: 'Please select at least 2 stations for the route',
+        });
+        return;
+      }
+      
+      // Parse frequency and duration
+      const frequencyMatch = formData.frequency?.match(/(\d+)/);
+      const frequencyMinutes = frequencyMatch ? parseInt(frequencyMatch[1]) : 15;
+      
+      const durationMatch = formData.avgDuration?.match(/(\d+)/);
+      const estimatedDuration = durationMatch ? parseInt(durationMatch[1]) : 30;
+      
+      // Prepare backend request
+      const backendRequest = {
         number: formData.number || "",
-        stations: formData.stationsList?.length || formData.stations || 0,
-        stationsList: formData.stationsList || [],
-        status: formData.status || "active",
-        buses: formData.buses || 0,
-        startPoint: formData.startPoint || "",
-        endPoint: formData.endPoint || "",
-        avgDuration: formData.avgDuration || "",
-        frequency: formData.frequency || "",
-        distance: 10,
-        occupancy: 70,
-        onTime: 85,
-        passengers: 1000,
-        revenue: 2500,
+        name: formData.name || "",
+        description: "",
+        active: formData.status === "active",
+        startStation: formData.startPoint || "",
+        endStation: formData.endPoint || "",
+        distance: formData.distance || 10,
+        estimatedDuration: estimatedDuration,
+        price: (formData.revenue || 2500) / 1000, // Convert back to price
+        config: {
+          ruleType: ServicePeriodType.DAILY,
+          frequencyMinutes: frequencyMinutes,
+          enabled: true,
+          busCount: formData.buses || 1,
+          firstDeparture: "06:00:00",
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        },
+        stationIds: formData.stationsList.map(s => s.id),
       };
-      setRoutes([...routes, newRoute]);
+      
+      if (editingRoute) {
+        await routeService.updateRoute(editingRoute.id, backendRequest);
+        toast.success('Route updated successfully!', {
+          description: `${formData.name} has been updated.`,
+        });
+      } else {
+        await routeService.createRoute(backendRequest);
+        toast.success('Route created successfully!', {
+          description: `${formData.name} has been added.`,
+        });
+      }
+      
+      setShowModal(false);
+      setEditingRoute(null);
+      setFormData({});
+      fetchRoutes(); // Refresh routes from backend
+    } catch (err: any) {
+      console.error('Failed to save route:', err);
+      toast.error('Failed to save route', {
+        description: err.response?.data?.message || 'Please try again',
+      });
+    } finally {
+      setSaveLoading(false);
     }
-    setShowModal(false);
-    setEditingRoute(null);
-    setFormData({});
   };
 
   const handleDelete = (id: string) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer cette ligne?")) {
-      setRoutes(routes.filter(r => r.id !== id));
+      // TODO: Implement DELETE /routeMgtApi/routes/{id}
+      toast.info('Delete functionality', {
+        description: `Backend delete endpoint not yet implemented for route ${id}`,
+      });
     }
   };
+  
+  // Filter stations for search
+  const filteredStations = availableStations.filter(station =>
+    station.name.toLowerCase().includes(stationSearchQuery.toLowerCase()) ||
+    station.code.toLowerCase().includes(stationSearchQuery.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <DashboardLayout user={currentUser || { id: "", name: "Loading...", email: "", role: "admin" }} notificationCount={3}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A54033] mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading routes...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <DashboardLayout user={mockUser} navigation={navigation} notificationCount={3}>
+    <DashboardLayout user={currentUser || { id: "", name: "Admin", email: "", role: "admin" }} notificationCount={3}>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h3 className="text-2xl font-bold text-gray-900">Gestion des Lignes</h3>
@@ -423,21 +464,44 @@ export default function RoutesPage() {
                 <div className="border-t pt-4 mt-4">
                   <Label className="text-lg font-bold mb-3 block">Gestion des Stations</Label>
                   
-                  {/* Add Station Input */}
-                  <div className="flex gap-2 mb-4">
-                    <Input 
-                      placeholder="Nom de la station (ex: Agdal)"
-                      value={stationInput}
-                      onChange={(e) => setStationInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleAddStation()}
-                    />
-                    <Button 
-                      type="button"
-                      onClick={handleAddStation}
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
+                  {/* Add Station Search */}
+                  <div className="mb-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input 
+                        placeholder="Rechercher une station (nom ou code)..."
+                        value={stationSearchQuery}
+                        onChange={(e) => setStationSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    {stationSearchQuery && (
+                      <div className="mt-2 max-h-48 overflow-y-auto border rounded-lg bg-white shadow-lg">
+                        {filteredStations.length === 0 ? (
+                          <p className="text-sm text-gray-500 p-3">Aucune station trouvée</p>
+                        ) : (
+                          filteredStations.slice(0, 10).map(station => (
+                            <button
+                              key={station.id}
+                              onClick={() => handleAddStation(station.id)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-50 border-b last:border-b-0"
+                              disabled={(formData.stationsList || []).some(s => s.id === station.id)}
+                              type="button"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium">{station.name}</p>
+                                  <p className="text-xs text-gray-500">{station.code} • {station.address}</p>
+                                </div>
+                                {(formData.stationsList || []).some(s => s.id === station.id) && (
+                                  <span className="text-xs text-green-600">Ajoutée</span>
+                                )}
+                              </div>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Stations List */}
@@ -515,9 +579,17 @@ export default function RoutesPage() {
 
                 <Button 
                   onClick={handleSave}
-                  className="w-full bg-[#9B392D] text-white hover:bg-[#7d2e24]"
+                  disabled={saveLoading}
+                  className="w-full bg-[#9B392D] text-white hover:bg-[#7d2e24] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {editingRoute ? 'Mettre à Jour' : 'Créer la Ligne'}
+                  {saveLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>En cours...</span>
+                    </div>
+                  ) : (
+                    editingRoute ? 'Mettre à Jour' : 'Créer la Ligne'
+                  )}
                 </Button>
               </div>
             </DialogContent>
