@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Clock, MapPin, Users, Bus, Play, StopCircle, CheckCircle2 } from 'lucide-react';
+import { Clock, MapPin, Bus, Play, StopCircle, CheckCircle2 } from 'lucide-react';
 import DashboardLayout from '../../DashboardLayout';
 import { User } from '../../../types';
 import authService from '../../../services/authService';
@@ -12,6 +12,7 @@ export default function MyTripsPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [routes, setRoutes] = useState<BackendRoute[]>([]);
   const [currentTrip, setCurrentTrip] = useState<Trip | null>(null);
+  const [currentTripRoute, setCurrentTripRoute] = useState<BackendRoute | null>(null);
   const [loading, setLoading] = useState(true);
   const [startingTrip, setStartingTrip] = useState(false);
   const [endingTrip, setEndingTrip] = useState(false);
@@ -78,6 +79,18 @@ export default function MyTripsPage() {
       setRoutes(routesResponse.content.filter((r: BackendRoute) => r.active));
       console.log('Trip data received:', tripData);
       setCurrentTrip(tripData);
+      
+      // Fetch route details for the current trip
+      if (tripData && tripData.routeId) {
+        try {
+          const routeData = await routeService.getRouteById(tripData.routeId);
+          setCurrentTripRoute(routeData);
+        } catch (err) {
+          console.error('Failed to fetch route for current trip:', err);
+        }
+      } else {
+        setCurrentTripRoute(null);
+      }
     } catch (err: any) {
       console.error('Failed to fetch data:', err);
       toast.error('Failed to load data');
@@ -164,6 +177,12 @@ export default function MyTripsPage() {
                 <h4 className="text-xl font-bold mb-1">Active Trip</h4>
                 <p className="text-white/90">Trip ID: {currentTrip.id}</p>
                 <p className="text-white/80 text-sm">Route ID: {currentTrip.routeId}</p>
+                {currentTripRoute && (
+                  <p className="text-white/80 text-sm flex items-center gap-1 mt-1">
+                    <MapPin className="w-3 h-3" />
+                    {currentTripRoute.startStation} → {currentTripRoute.endStation}
+                  </p>
+                )}
               </div>
               <CheckCircle2 className="w-12 h-12 opacity-50" />
             </div>
@@ -240,27 +259,48 @@ export default function MyTripsPage() {
                   </Button>
                 </div>
 
-                <div className="grid grid-cols-4 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <Clock className="w-4 h-4 text-[#9B392D] mb-1" />
-                    <p className="text-xs text-gray-600">Duration</p>
-                    <p className="font-semibold text-gray-900">{route.estimatedDuration} min</p>
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <Clock className="w-4 h-4 text-[#9B392D] mb-1" />
+                      <p className="text-xs text-gray-600">Duration</p>
+                      <p className="font-semibold text-gray-900">{route.estimatedDuration} min</p>
+                    </div>
+                    <div className="bg-gray-50 rounded-lg p-3">
+                      <MapPin className="w-4 h-4 text-[#9B392D] mb-1" />
+                      <p className="text-xs text-gray-600">Distance</p>
+                      <p className="font-semibold text-gray-900">{route.distance} km</p>
+                    </div>
+                    {/* <div className="bg-gray-50 rounded-lg p-3">
+                      <Bus className="w-4 h-4 text-[#9B392D] mb-1" />
+                      <p className="text-xs text-gray-600">Buses</p>
+                      <p className="font-semibold text-gray-900">{route.config?.busCount || 0}</p>
+                    </div> */}
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <MapPin className="w-4 h-4 text-[#9B392D] mb-1" />
-                    <p className="text-xs text-gray-600">Distance</p>
-                    <p className="font-semibold text-gray-900">{route.distance} km</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <Users className="w-4 h-4 text-[#9B392D] mb-1" />
-                    <p className="text-xs text-gray-600">Stations</p>
-                    <p className="font-semibold text-gray-900">{route.stations?.length || 0}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <Bus className="w-4 h-4 text-[#9B392D] mb-1" />
-                    <p className="text-xs text-gray-600">Buses</p>
-                    <p className="font-semibold text-gray-900">{route.config?.busCount || 0}</p>
-                  </div>
+
+                  {/* Stations List */}
+                  {route.stations && route.stations.length > 0 && (
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <MapPin className="w-4 h-4 text-[#9B392D]" />
+                        <p className="text-xs font-medium text-gray-700">Route Stations ({route.stations.length})</p>
+                      </div>
+                      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+                        {route.stations.map((station, index) => (
+                          <div key={station.stationId} className="flex items-center gap-2 flex-shrink-0">
+                            <div className="bg-white rounded-lg px-3 py-2 border border-gray-200">
+                              <p className="text-xs font-medium text-gray-900">{station.name}</p>
+                              {index === 0 && <p className="text-xs text-green-600">Start</p>}
+                              {index === route.stations!.length - 1 && <p className="text-xs text-red-600">End</p>}
+                            </div>
+                            {index < route.stations!.length - 1 && (
+                              <div className="text-gray-400">→</div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

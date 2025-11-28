@@ -77,10 +77,24 @@ const ticketService = {
 
   // Validate Ticket
   async validate(ticketId: string, tripId: string): Promise<ValidationResponse> {
-    const response = await api.post(`${TICKET_BASE_URL}/${ticketId}/validate`, null, {
-      params: { tripId }
-    });
-    return response.data;
+    try {
+      const response = await api.post(`${TICKET_BASE_URL}/${ticketId}/validate`, null, {
+        params: { tripId }
+      });
+      // Backend returns a string message, convert to ValidationResponse format
+      return {
+        valid: true,
+        ticket: {} as Ticket, // Backend doesn't return ticket in success response
+        message: response.data || 'Ticket validated successfully'
+      };
+    } catch (error: any) {
+      // If validation fails, backend returns error message
+      return {
+        valid: false,
+        ticket: {} as Ticket,
+        message: error.response?.data || 'Ticket validation failed'
+      };
+    }
   },
 
   // Inspect Ticket (for controllers)
