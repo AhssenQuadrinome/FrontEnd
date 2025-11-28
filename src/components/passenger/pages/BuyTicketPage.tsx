@@ -213,8 +213,8 @@ export default function BuyTicketPage() {
                   <Ticket
                     key={route.id}
                     routeId={route.id}
-                    departure={fromStation}
-                    arrival={toStation}
+                    departure={route.startStation}
+                    arrival={route.endStation}
                     duration={`${route.estimatedDuration} min`}
                     connections={route.stations?.length || 0}
                     trainType="Bus"
