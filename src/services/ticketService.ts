@@ -76,8 +76,10 @@ const ticketService = {
   },
 
   // Validate Ticket
-  async validate(ticketId: string, data?: ValidationRequest): Promise<ValidationResponse> {
-    const response = await api.post(`${TICKET_BASE_URL}/${ticketId}/validate`, data || {});
+  async validate(ticketId: string, tripId: string): Promise<ValidationResponse> {
+    const response = await api.post(`${TICKET_BASE_URL}/${ticketId}/validate`, null, {
+      params: { tripId }
+    });
     return response.data;
   },
 
