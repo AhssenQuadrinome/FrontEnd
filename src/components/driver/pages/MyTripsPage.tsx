@@ -252,7 +252,7 @@ export default function MyTripsPage() {
                   <Button
                     onClick={() => handleStartTrip(route.id)}
                     disabled={startingTrip || currentTrip !== null}
-                    className="bg-gradient-to-r from-[#9B392D] to-[#7d2e24] hover:from-[#7d2e24] hover:to-[#5d1f1a] disabled:opacity-50"
+                    className="text-white font-bold bg-gradient-to-r from-[#9B392D] to-[#7d2e24] hover:from-[#7d2e24] hover:to-[#5d1f1a] disabled:opacity-50"
                   >
                     <Play className="w-4 h-4 mr-2" />
                     {startingTrip ? 'Starting...' : 'Start Trip'}

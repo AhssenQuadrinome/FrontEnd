@@ -88,11 +88,32 @@ const ticketService = {
         message: response.data || 'Ticket validated successfully'
       };
     } catch (error: any) {
-      // If validation fails, backend returns error message
+      // Handle different error types with specific messages
+      let errorMessage = 'Ticket validation failed';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 404) {
+          errorMessage = 'Ticket not found or not valid for this route';
+        } else if (status === 400) {
+          errorMessage = typeof data === 'string' ? data : (data?.message || 'Invalid ticket or route mismatch');
+        } else if (status === 410) {
+          errorMessage = 'Ticket has already been used';
+        } else if (status === 403) {
+          errorMessage = 'Ticket has expired';
+        } else {
+          errorMessage = typeof data === 'string' ? data : (data?.message || errorMessage);
+        }
+      } else if (error.request) {
+        errorMessage = 'Cannot connect to validation service';
+      }
+      
       return {
         valid: false,
         ticket: {} as Ticket,
-        message: error.response?.data || 'Ticket validation failed'
+        message: errorMessage
       };
     }
   },
