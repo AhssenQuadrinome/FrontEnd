@@ -181,94 +181,147 @@ export default function ValidateTicketsPage() {
         <div className="bg-gradient-to-br from-[#9B392D] to-[#7d2e24] rounded-xl shadow-lg p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-xl font-bold mb-1">Active Trip</h4>
-              <p className="text-white/90">Route: {currentTrip.routeName || `#${currentTrip.routeNumber || 'N/A'}`}</p>
-              <p className="text-sm text-white/75 mt-1">Started: {new Date(currentTrip.startTime).toLocaleTimeString()}</p>
+              <h4 className="text-lg font-semibold mb-2">Active Trip</h4>
+              <div className="space-y-1">
+                <p className="text-white/90">Trip ID: {currentTrip.id}</p>
+                <p className="text-white/80 text-sm">Route ID: {currentTrip.routeId}</p>
+                <p className="text-white/75 text-sm">Started: {new Date(currentTrip.startTime).toLocaleString()}</p>
+              </div>
             </div>
-            <QrCode className="w-16 h-16 opacity-50" />
+            <div className="bg-white/20 rounded-xl p-4">
+              <QrCode className="w-12 h-12" />
+            </div>
           </div>
         </div>
 
         {/* Validation Form */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h4 className="text-lg font-bold text-[#181E4B] mb-4">Scan or Enter Ticket</h4>
+        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+          <h4 className="text-lg font-semibold text-[#181E4B] mb-6 flex items-center gap-2">
+            <QrCode className="w-5 h-5 text-[#9B392D]" />
+            Ticket Validation
+          </h4>
           
-          {/* QR Code Upload */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Upload QR Code Image
-            </label>
-            <div className="flex items-center gap-4">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="flex-1"
-              />
-              {qrImage && (
-                <span className="text-sm text-green-600 flex items-center gap-1">
-                  <CheckCircle className="w-4 h-4" />
-                  Uploaded
-                </span>
-              )}
+          <div className="space-y-5">
+            {/* QR Code Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Upload QR Code
+              </label>
+              <div className="relative">
+                <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                  qrImage 
+                    ? 'border-green-500 bg-green-50' 
+                    : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-[#9B392D]'
+                }`}>
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {qrImage ? (
+                      <>
+                        <CheckCircle className="w-10 h-10 text-green-600 mb-2" />
+                        <p className="text-sm text-green-600 font-medium">{qrImage.name}</p>
+                        <p className="text-xs text-gray-500 mt-1">Click to change</p>
+                      </>
+                    ) : (
+                      <>
+                        <QrCode className="w-10 h-10 text-[#9B392D] mb-2" />
+                        <p className="text-sm text-gray-600 font-medium">Click to upload QR code</p>
+                        <p className="text-xs text-gray-500 mt-1">PNG, JPG or JPEG</p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             </div>
-          </div>
 
-          {/* Manual Ticket ID Input */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Or Enter Ticket ID Manually
-            </label>
-            <Input
-              type="text"
-              placeholder="Enter ticket ID..."
-              value={ticketId}
-              onChange={(e) => setTicketId(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleValidateTicket()}
-            />
-          </div>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-white px-2 text-gray-500">OR</span>
+              </div>
+            </div>
 
-          <Button
-            onClick={handleValidateTicket}
-            disabled={validating || !ticketId.trim()}
-            className="w-full bg-gradient-to-r from-[#9B392D] to-[#7d2e24] hover:from-[#7d2e24] hover:to-[#5d1f1a] disabled:opacity-50"
-          >
-            <QrCode className="w-4 h-4 mr-2" />
-            {validating ? 'Validating...' : 'Validate Ticket'}
-          </Button>
+            {/* Manual Ticket ID Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Enter Ticket ID
+              </label>
+              <Input
+                type="text"
+                placeholder="Ticket ID..."
+                value={ticketId}
+                onChange={(e) => setTicketId(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleValidateTicket()}
+                className="text-center text-lg font-mono"
+              />
+            </div>
+
+            <Button
+              onClick={handleValidateTicket}
+              disabled={validating || !ticketId.trim()}
+              className="w-full bg-gradient-to-r from-[#9B392D] to-[#7d2e24] hover:from-[#7d2e24] hover:to-[#5d1f1a] disabled:opacity-50 h-12 text-base font-medium"
+            >
+              {validating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Validating...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Validate Ticket
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         {/* Validation History */}
         {validationHistory.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h4 className="text-lg font-bold text-[#181E4B] mb-4">Validation History</h4>
-            <div className="space-y-3">
-              {validationHistory.map((item, index) => (
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+            <h4 className="text-lg font-semibold text-[#181E4B] mb-4">Recent Validations</h4>
+            <div className="space-y-2">
+              {validationHistory.slice(0, 5).map((item, index) => (
                 <div
                   key={index}
-                  className={`flex items-center justify-between p-4 rounded-lg border-2 ${
+                  className={`flex items-center justify-between p-4 rounded-lg transition-colors ${
                     item.valid
-                      ? 'bg-green-50 border-green-200'
-                      : 'bg-red-50 border-red-200'
+                      ? 'bg-green-50 hover:bg-green-100'
+                      : 'bg-red-50 hover:bg-red-100'
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     {item.valid ? (
-                      <CheckCircle className="w-6 h-6 text-green-600" />
+                      <div className="bg-green-600 rounded-full p-1">
+                        <CheckCircle className="w-5 h-5 text-white" />
+                      </div>
                     ) : (
-                      <XCircle className="w-6 h-6 text-red-600" />
+                      <div className="bg-red-600 rounded-full p-1">
+                        <XCircle className="w-5 h-5 text-white" />
+                      </div>
                     )}
                     <div>
-                      <p className="font-semibold text-gray-900">Ticket: {item.ticketId}</p>
-                      <p className="text-sm text-gray-600">{item.message || (item.valid ? 'Valid ticket' : 'Invalid ticket')}</p>
+                      <p className="font-medium text-gray-900">{item.ticketId}</p>
+                      <p className="text-sm text-gray-600">{item.message || (item.valid ? 'Valid' : 'Invalid')}</p>
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500">
-                    {item.timestamp.toLocaleTimeString()}
+                  <span className="text-xs text-gray-500 font-medium">
+                    {item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
               ))}
             </div>
+            {validationHistory.length > 5 && (
+              <p className="text-center text-sm text-gray-500 mt-3">
+                Showing 5 of {validationHistory.length} validations
+              </p>
+            )}
           </div>
         )}
       </div>
