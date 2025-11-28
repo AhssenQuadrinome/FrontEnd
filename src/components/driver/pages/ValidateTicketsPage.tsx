@@ -57,16 +57,18 @@ export default function ValidateTicketsPage() {
   const fetchCurrentTrip = async () => {
     try {
       setLoading(true);
-      const trip = await tripService.getCurrentTrip();
-      setCurrentTrip(trip);
       
-      if (!trip) {
-        toast.error('No active trip', {
+      const tripData = await tripService.getCurrentTrip();
+      setCurrentTrip(tripData);
+      
+      if (!tripData) {
+        toast.info('No active trip', {
           description: 'Please start a trip first before validating tickets.',
         });
       }
     } catch (err: any) {
-      console.error('Failed to fetch trip:', err);
+      console.error('Failed to load trip:', err);
+      setCurrentTrip(null);
       toast.error('Failed to load trip information');
     } finally {
       setLoading(false);

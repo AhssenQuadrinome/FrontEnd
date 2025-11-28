@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { LogOut, Menu, X, Bell, Ticket, TrendingUp, Map, MapPin, User as UserIcon } from 'lucide-react';
+import { LogOut, Menu, X, Bell, Ticket, TrendingUp, Map, MapPin, User as UserIcon, QrCode } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User } from '../types';
 import authService from '../services/authService';
@@ -56,6 +56,7 @@ export default function DashboardLayout({
   ];
   const driverNavigation = [
     { name: 'My Trips', icon: <Ticket />, path: '/driver/trips' },
+    { name: 'Validate Tickets', icon: <QrCode />, path: '/driver/validate' },
     { name: 'Geolocation', icon: <Map />, path: '/driver/geolocation' },
     { name: 'Incidents', icon: <Bell />, path: '/driver/incidents' },
     { name: 'Planning', icon: <TrendingUp />, path: '/driver/planning' },

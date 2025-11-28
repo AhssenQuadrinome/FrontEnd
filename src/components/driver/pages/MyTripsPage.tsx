@@ -76,6 +76,7 @@ export default function MyTripsPage() {
         tripService.getCurrentTrip()
       ]);
       setRoutes(routesResponse.content.filter((r: BackendRoute) => r.active));
+      console.log('Trip data received:', tripData);
       setCurrentTrip(tripData);
     } catch (err: any) {
       console.error('Failed to fetch data:', err);
@@ -96,7 +97,8 @@ export default function MyTripsPage() {
     try {
       setStartingTrip(true);
       console.log('Starting trip for route:', routeId);
-      await tripService.startTrip({ routeId });
+      const now = new Date().toISOString();
+      await tripService.startTrip({ routeId, startTime: now });
       toast.success('Trip started successfully!');
       await fetchData();
     } catch (err: any) {
@@ -160,20 +162,31 @@ export default function MyTripsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h4 className="text-xl font-bold mb-1">Active Trip</h4>
-                <p className="text-white/90">Route: {currentTrip.routeName || `#${currentTrip.routeNumber || 'N/A'}`}</p>
+                <p className="text-white/90">Trip ID: {currentTrip.id}</p>
+                <p className="text-white/80 text-sm">Route ID: {currentTrip.routeId}</p>
               </div>
               <CheckCircle2 className="w-12 h-12 opacity-50" />
             </div>
             
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-3 gap-4 mb-4">
               <div className="bg-white/10 rounded-lg p-3">
                 <p className="text-xs text-white/70 mb-1">Started</p>
-                <p className="text-sm font-semibold">{new Date(currentTrip.startTime).toLocaleTimeString()}</p>
+                <p className="text-sm font-semibold">
+                  {currentTrip.startTime
+                    ? new Date(currentTrip.startTime).toLocaleString()
+                    : 'N/A'}
+                </p>
               </div>
               <div className="bg-white/10 rounded-lg p-3">
                 <p className="text-xs text-white/70 mb-1">Status</p>
-                <p className="text-sm font-semibold">{currentTrip.status}</p>
+                <p className="text-sm font-semibold">{currentTrip.status.replace('_', ' ')}</p>
               </div>
+              {currentTrip.busId && (
+                <div className="bg-white/10 rounded-lg p-3">
+                  <p className="text-xs text-white/70 mb-1">Bus ID</p>
+                  <p className="text-sm font-semibold">{currentTrip.busId}</p>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3">

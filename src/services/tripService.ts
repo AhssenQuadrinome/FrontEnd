@@ -7,21 +7,18 @@ const TRIP_BASE_URL = '/routeMgtApi/trips';
 export interface StartTripRequest {
   routeId: string;
   busId?: string;
+  startTime?: string;
 }
 
 export interface Trip {
   id: string;
   routeId: string;
-  routeName?: string;
-  routeNumber?: string;
-  driverId: string;
-  driverName?: string;
+  inspectorId?: string;
   busId?: string;
-  status: 'ACTIVE' | 'COMPLETED' | 'CANCELLED';
-  startTime: string;
+  driverId: string;
+  startTime: string; // ISO DateTime string like "2025-11-28T18:46:11.142"
   endTime?: string;
-  startStation?: string;
-  endStation?: string;
+  status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 }
 
 export interface PageResponse<T> {
@@ -37,34 +34,49 @@ const tripService = {
   // Start a new trip
   async startTrip(data: StartTripRequest): Promise<Trip> {
     const response = await api.post(`${TRIP_BASE_URL}/startTrip`, data);
-    return response.data;
+    console.log('Raw backend response for startTrip:', response);
+    console.log('Trip data from backend after start:', response.data);
+    const trip = response.data;
+    // Store trip ID in localStorage so we can fetch it later
+    localStorage.setItem('currentTripId', trip.id);
+    return trip;
   },
 
-  // End current trip
-  async endTrip(tripId: string): Promise<Trip> {
-    const response = await api.post(`${TRIP_BASE_URL}/${tripId}/end`);
+  // End current trip - Backend endpoint is /endTrip/{tripId}
+  async endTrip(tripId: string, data?: { endTime?: string; notes?: string }): Promise<Trip> {
+    const response = await api.patch(`${TRIP_BASE_URL}/endTrip/${tripId}`, data || {});
+    const trip = response.data;
+    // Remove trip ID from localStorage when trip ends
+    localStorage.removeItem('currentTripId');
+    return trip;
+  },
+
+  // Get trip by ID - Use backend endpoint GET /trips/{tripId}
+  async getTripById(tripId: string): Promise<Trip> {
+    const response = await api.get(`${TRIP_BASE_URL}/${tripId}`);
+    console.log('Raw backend response for trip:', response);
+    console.log('Trip data from backend:', response.data);
     return response.data;
   },
 
   // Get current active trip for driver
+  // Backend doesn't have /current endpoint, so we store tripId in localStorage
+  // and fetch using getTripById
   async getCurrentTrip(): Promise<Trip | null> {
-    try {
-      const response = await api.get(`${TRIP_BASE_URL}/current`);
-      return response.data;
-    } catch (error: any) {
-      // Return null if no trip found (404) or access denied for this endpoint (403)
-      // 403 might mean driver has no active trip and endpoint requires one
-      if (error.response?.status === 404 || error.response?.status === 403) {
-        return null;
+    const tripId = localStorage.getItem('currentTripId');
+    if (tripId) {
+      try {
+        return await this.getTripById(tripId);
+      } catch (error: any) {
+        // Trip might have been ended or deleted
+        if (error.response?.status === 404) {
+          localStorage.removeItem('currentTripId');
+          return null;
+        }
+        throw error;
       }
-      throw error;
     }
-  },
-
-  // Get trip by ID
-  async getTripById(tripId: string): Promise<Trip> {
-    const response = await api.get(`${TRIP_BASE_URL}/${tripId}`);
-    return response.data;
+    return null;
   },
 
   // Get trip history for driver
