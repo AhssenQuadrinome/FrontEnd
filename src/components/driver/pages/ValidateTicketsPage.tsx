@@ -8,6 +8,8 @@ import ticketService from '../../../services/ticketService';
 import { toast } from 'sonner';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
+import jsQR from 'jsqr';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function ValidateTicketsPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -75,15 +77,69 @@ export default function ValidateTicketsPage() {
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setQrImage(e.target.files[0]);
-      // TODO: Extract ticket ID from QR code image
-      // For now, user will need to enter manually
-      toast.info('QR Code uploaded', {
-        description: 'Please enter the ticket ID manually for now.',
-      });
+      const file = e.target.files[0];
+      setQrImage(file);
+      
+      // Scan QR code from image
+      try {
+        const imageData = await readQRCode(file);
+        if (imageData) {
+          setTicketId(imageData);
+          toast.success('QR Code scanned!', {
+            description: `Ticket ID: ${imageData}`,
+          });
+        } else {
+          toast.warning('No QR code detected', {
+            description: 'Please enter the ticket ID manually.',
+          });
+        }
+      } catch (error) {
+        console.error('Failed to scan QR code:', error);
+        toast.error('Failed to scan QR code', {
+          description: 'Please enter the ticket ID manually.',
+        });
+      }
     }
+  };
+
+  const readQRCode = (file: File): Promise<string | null> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+          
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          
+          if (code) {
+            resolve(code.data);
+          } else {
+            resolve(null);
+          }
+        };
+        
+        img.onerror = () => reject(new Error('Failed to load image'));
+        img.src = event.target?.result as string;
+      };
+      
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleValidateTicket = async () => {
@@ -188,8 +244,13 @@ export default function ValidateTicketsPage() {
                 <p className="text-white/75 text-sm">Started: {new Date(currentTrip.startTime).toLocaleString()}</p>
               </div>
             </div>
-            <div className="bg-white/20 rounded-xl p-4">
-              <QrCode className="w-12 h-12" />
+            <div className="bg-white rounded-xl p-3">
+              <QRCodeSVG 
+                value={currentTrip.id} 
+                size={96}
+                level="H"
+                includeMargin={false}
+              />
             </div>
           </div>
         </div>
