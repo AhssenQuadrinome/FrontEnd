@@ -31,17 +31,23 @@ export default function ProfilePage() {
   // Original values for cancel
   const [originalData, setOriginalData] = useState<any>({});
 
-  // Mock user for layout
-  const mockUser: User = {
-    id: '3',
-    name: `${firstName} ${lastName}`,
-    email,
-    role: 'controller',
-  };
+  // Current user for layout
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+    
+    // Get user info from storage
+    const user = authService.getCurrentUser();
+    if (user) {
+      setCurrentUser({
+        id: user.id,
+        name: `${firstName} ${lastName}` || user.email,
+        email: user.email,
+        role: 'controller'
+      });
+    }
+  }, [firstName, lastName]);
 
   const fetchProfile = async () => {
     try {
@@ -127,7 +133,7 @@ export default function ProfilePage() {
 
   if (fetchLoading) {
     return (
-      <DashboardLayout user={mockUser} notificationCount={0}>
+      <DashboardLayout user={currentUser || { id: "", name: "Controller", email: "", role: "controller" }} notificationCount={0}>
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#9B392D] mx-auto"></div>
@@ -139,7 +145,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <DashboardLayout user={mockUser} notificationCount={0}>
+    <DashboardLayout user={currentUser || { id: "", name: `${firstName} ${lastName}`, email, role: "controller" }} notificationCount={0}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   QrCode,
   CheckCircle,
@@ -8,13 +8,7 @@ import {
 } from 'lucide-react';
 import DashboardLayout from '../../DashboardLayout';
 import { User, ValidationRecord } from '../../../types';
-
-const mockUser: User = {
-  id: '3',
-  name: 'Moon flower',
-  email: 'moon.flower@mybus.com',
-  role: 'controller',
-};
+import authService from '../../../services/authService';
 
 const mockValidations: ValidationRecord[] = [
   {
@@ -50,6 +44,7 @@ const mockValidations: ValidationRecord[] = [
 ];
 
 export default function ValidateTicketsPage() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [scannerActive, setScannerActive] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<{
@@ -57,6 +52,35 @@ export default function ValidateTicketsPage() {
     message: string;
     ticketInfo?: any;
   } | null>(null);
+
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    if (user) {
+      authService.getProfile()
+        .then(profile => {
+          const roleMap: Record<string, "admin" | "driver" | "controller" | "passenger"> = {
+            'ADMINISTRATOR': 'admin',
+            'DRIVER': 'driver',
+            'CONTROLLER': 'controller',
+            'PASSENGER': 'passenger'
+          };
+          setCurrentUser({
+            id: profile.id,
+            name: `${profile.firstName} ${profile.lastName}`,
+            email: profile.email,
+            role: roleMap[profile.role] || profile.role.toLowerCase() as "admin" | "driver" | "controller" | "passenger"
+          });
+        })
+        .catch(() => {
+          setCurrentUser({
+            id: user.id,
+            name: "Controller User",
+            email: user.email,
+            role: 'controller'
+          });
+        });
+    }
+  }, []);
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -110,7 +134,7 @@ export default function ValidateTicketsPage() {
   const invalidCount = todayValidations.filter((v) => !v.valid).length;
 
   return (
-    <DashboardLayout user={mockUser} notificationCount={1}>
+    <DashboardLayout user={currentUser || { id: "", name: "Controller", email: "", role: "controller" }} notificationCount={1}>
       <div className="space-y-6">
         <h3 className="text-2xl font-bold text-navy">Ticket Validation</h3>
 

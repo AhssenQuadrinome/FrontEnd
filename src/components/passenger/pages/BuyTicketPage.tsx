@@ -5,6 +5,7 @@ import authService from '../../../services/authService';
 import routeService, { Route } from '../../../services/routeService';
 import ticketService from '../../../services/ticketService';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export default function BuyTicketPage() {
   const navigate = useNavigate();
@@ -51,7 +52,7 @@ export default function BuyTicketPage() {
       console.log('[BuyTicketPage] Data loaded successfully');
     } catch (err) {
       console.error('[BuyTicketPage] Failed to fetch data:', err);
-      alert('Failed to load data. Please check if you are logged in and services are running.');
+      toast.error('Failed to load data. Please check if you are logged in and services are running.');
     } finally {
       setLoading(false);
     }
@@ -59,11 +60,13 @@ export default function BuyTicketPage() {
 
   const handleSearch = () => {
     if (!fromStation || !toStation) {
-      alert('Veuillez sélectionner les deux stations');
+      
+      toast.error('Veuillez sélectionner les deux stations');
       return;
     }
     if (fromStation === toStation) {
-      alert('Les stations de départ et d\'arrivée doivent être différentes');
+      toast.error('Les stations de départ et d\'arrivée doivent être différentes');
+
       return;
     }
 
@@ -102,14 +105,13 @@ export default function BuyTicketPage() {
       });
       
       console.log('[BuyTicketPage] Ticket purchased successfully:', ticket);
-      alert('✅ Billet acheté avec succès!\n\nVotre billet a été envoyé par email.');
-      
+      toast.success("✅ Billet acheté avec succès!\n\nVotre billet a été envoyé par email.")
       // Redirect to tickets page
       navigate('/passenger/tickets');
     } catch (err: any) {
       console.error('[BuyTicketPage] Purchase failed:', err);
       const errorMessage = err.response?.data?.message || 'Échec de l\'achat du billet';
-      alert(`❌ Erreur: ${errorMessage}`);
+      toast.error(`❌ Erreur: ${errorMessage}`);
     } finally {
       setPurchasing(false);
     }

@@ -38,6 +38,14 @@ export interface ValidationResponse {
   message?: string;
 }
 
+export interface TicketValidation {
+  id: string;
+  ticketId: string;
+  tripId: string;
+  validatedAt: string;
+  ticket: Ticket;
+}
+
 // Ticket Service
 const ticketService = {
   // Purchase Ticket
@@ -119,9 +127,47 @@ const ticketService = {
   },
 
   // Inspect Ticket (for controllers)
-  async inspect(ticketId: string): Promise<Ticket> {
-    const response = await api.get(`${TICKET_BASE_URL}/${ticketId}/inspect`);
-    return response.data;
+  async inspect(ticketId: string, tripId: string): Promise<{
+    valid: boolean;
+    message: string;
+    ticket?: Ticket;
+  }> {
+    try {
+      const response = await api.get(`${TICKET_BASE_URL}/${ticketId}/inspect`, {
+        params: { tripId }
+      });
+      return {
+        valid: true,
+        message: response.data || 'Ticket inspection successful',
+        ticket: {} as Ticket // Backend may return ticket details
+      };
+    } catch (error: any) {
+      let errorMessage = 'Ticket inspection failed';
+      
+      if (error.response) {
+        const status = error.response.status;
+        const data = error.response.data;
+        
+        if (status === 404) {
+          errorMessage = 'Ticket not found or not valid for this route';
+        } else if (status === 400) {
+          errorMessage = typeof data === 'string' ? data : (data?.message || 'Invalid ticket or route mismatch');
+        } else if (status === 410) {
+          errorMessage = 'Ticket has already been used';
+        } else if (status === 403) {
+          errorMessage = 'Ticket has expired';
+        } else {
+          errorMessage = typeof data === 'string' ? data : (data?.message || errorMessage);
+        }
+      } else if (error.request) {
+        errorMessage = 'Cannot connect to inspection service';
+      }
+      
+      return {
+        valid: false,
+        message: errorMessage
+      };
+    }
   },
 
   // Get Ticket PDF
@@ -144,6 +190,18 @@ const ticketService = {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     });
+  },
+
+  // Get all validations for a specific trip
+  async getValidationsByTrip(tripId: string): Promise<TicketValidation[]> {
+    const response = await api.get(`${TICKET_BASE_URL}/validations/trip/${tripId}`);
+    return response.data;
+  },
+
+  // Get all validations for the authenticated driver across all their trips
+  async getValidationsByDriver(): Promise<TicketValidation[]> {
+    const response = await api.get(`${TICKET_BASE_URL}/validations/driver`);
+    return response.data;
   },
 };
 

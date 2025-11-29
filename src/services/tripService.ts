@@ -86,6 +86,12 @@ const tripService = {
     });
     return response.data;
   },
+
+  // Get all trips for the authenticated driver (no pagination)
+  async getDriverTrips(): Promise<Trip[]> {
+    const response = await api.get(`${TRIP_BASE_URL}/driver`);
+    return response.data;
+  },
 };
 
 export default tripService;
