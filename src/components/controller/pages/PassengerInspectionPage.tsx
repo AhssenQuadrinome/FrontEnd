@@ -28,6 +28,7 @@ export default function PassengerInspectionPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [ticketId, setTicketId] = useState('');
   const [tripId, setTripId] = useState('');
+  const [tripIdLocked, setTripIdLocked] = useState(false);
   const [ticketQrImage, setTicketQrImage] = useState<File | null>(null);
   const [tripQrImage, setTripQrImage] = useState<File | null>(null);
   const [inspecting, setInspecting] = useState(false);
@@ -148,6 +149,27 @@ export default function PassengerInspectionPage() {
     }
   };
 
+  const handleSetTrip = () => {
+    if (!tripId.trim()) {
+      toast.error('Please enter a trip ID');
+      return;
+    }
+    setTripIdLocked(true);
+    toast.success('Trip ID set!', {
+      description: 'You can now start validating tickets for this trip.',
+    });
+  };
+
+  const handleChangeTrip = () => {
+    setTripIdLocked(false);
+    setTripId('');
+    setTripQrImage(null);
+    setInspectionHistory([]);
+    toast.info('Trip changed', {
+      description: 'Please enter the new trip ID.',
+    });
+  };
+
   const handleInspect = async () => {
     if (!ticketId.trim()) {
       toast.error('Please enter a ticket ID');
@@ -181,11 +203,9 @@ export default function PassengerInspectionPage() {
         });
       }
 
-      // Reset form
+      // Reset only ticket fields, keep trip ID locked
       setTicketId('');
-      setTripId('');
       setTicketQrImage(null);
-      setTripQrImage(null);
     } catch (err: any) {
       console.error('Failed to inspect ticket:', err);
       toast.error('Inspection failed', {
@@ -242,73 +262,17 @@ export default function PassengerInspectionPage() {
           </div>
         </div>
 
-        {/* Inspection Form */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
-          <h4 className="text-lg font-semibold text-[#181E4B] mb-6 flex items-center gap-2">
-            <QrCode className="w-5 h-5 text-[#9B392D]" />
-            Inspect Passenger Ticket
-          </h4>
+        {/* Trip Selection */}
+        {!tripIdLocked ? (
+          <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+            <h4 className="text-lg font-semibold text-[#181E4B] mb-6 flex items-center gap-2">
+              <QrCode className="w-5 h-5 text-[#9B392D]" />
+              Set Trip ID
+            </h4>
+            <p className="text-gray-600 mb-6">
+              First, scan or enter the Trip ID. You'll then be able to validate multiple tickets for this trip.
+            </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {/* Ticket ID Section */}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Ticket QR Code
-                </label>
-                <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
-                  ticketQrImage 
-                    ? 'border-green-500 bg-green-50' 
-                    : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-[#9B392D]'
-                }`}>
-                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    {ticketQrImage ? (
-                      <>
-                        <CheckCircle className="w-10 h-10 text-green-600 mb-2" />
-                        <p className="text-sm text-green-600 font-medium">{ticketQrImage.name}</p>
-                        <p className="text-xs text-gray-500 mt-1">Click to change</p>
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-10 h-10 text-[#9B392D] mb-2" />
-                        <p className="text-sm text-gray-600 font-medium">Upload Ticket QR</p>
-                        <p className="text-xs text-gray-500 mt-1">PNG, JPG or JPEG</p>
-                      </>
-                    )}
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleTicketQRUpload}
-                    className="hidden"
-                  />
-                </label>
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-white px-2 text-gray-500">OR</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter Ticket ID
-                </label>
-                <Input
-                  type="text"
-                  placeholder="Ticket ID..."
-                  value={ticketId}
-                  onChange={(e) => setTicketId(e.target.value)}
-                  className="text-center text-lg font-mono"
-                />
-              </div>
-            </div>
-
-            {/* Trip ID Section */}
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -364,27 +328,119 @@ export default function PassengerInspectionPage() {
                   className="text-center text-lg font-mono"
                 />
               </div>
+
+              <Button
+                onClick={handleSetTrip}
+                disabled={!tripId.trim()}
+                className="w-full bg-gradient-to-r from-[#9B392D] to-[#7d2e24] hover:from-[#7d2e24] hover:to-[#5d1f1a] disabled:opacity-50 h-12 text-base font-medium"
+              >
+                Set Trip & Start Validating
+              </Button>
             </div>
           </div>
+        ) : (
+          <>
+            {/* Current Trip Info */}
+            <div className="bg-gradient-to-br from-[#9B392D] to-[#7d2e24] rounded-xl shadow-md p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm opacity-80 mb-1">Current Trip ID</p>
+                  <p className="text-2xl font-bold font-mono">{tripId}</p>
+                </div>
+                <Button
+                  onClick={handleChangeTrip}
+                  variant="outline"
+                  className="bg-white text-[#9B392D] hover:bg-gray-100 border-white"
+                >
+                  Change Trip
+                </Button>
+              </div>
+            </div>
 
-          <Button
-            onClick={handleInspect}
-            disabled={inspecting || !ticketId.trim() || !tripId.trim()}
-            className="w-full bg-gradient-to-r from-[#9B392D] to-[#7d2e24] hover:from-[#7d2e24] hover:to-[#5d1f1a] disabled:opacity-50 h-12 text-base font-medium"
-          >
-            {inspecting ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Inspecting...
-              </>
-            ) : (
-              <>
-                <Search className="w-5 h-5 mr-2" />
-                Inspect Ticket
-              </>
-            )}
-          </Button>
-        </div>
+            {/* Inspection Form */}
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6">
+              <h4 className="text-lg font-semibold text-[#181E4B] mb-6 flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-[#9B392D]" />
+                Validate Passenger Ticket
+              </h4>
+
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Ticket QR Code
+                  </label>
+                  <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                    ticketQrImage 
+                      ? 'border-green-500 bg-green-50' 
+                      : 'border-gray-300 bg-gray-50 hover:bg-gray-100 hover:border-[#9B392D]'
+                  }`}>
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      {ticketQrImage ? (
+                        <>
+                          <CheckCircle className="w-10 h-10 text-green-600 mb-2" />
+                          <p className="text-sm text-green-600 font-medium">{ticketQrImage.name}</p>
+                          <p className="text-xs text-gray-500 mt-1">Click to change</p>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-10 h-10 text-[#9B392D] mb-2" />
+                          <p className="text-sm text-gray-600 font-medium">Upload Ticket QR</p>
+                          <p className="text-xs text-gray-500 mt-1">PNG, JPG or JPEG</p>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleTicketQRUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-200"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="bg-white px-2 text-gray-500">OR</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Enter Ticket ID
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Ticket ID..."
+                    value={ticketId}
+                    onChange={(e) => setTicketId(e.target.value)}
+                    className="text-center text-lg font-mono"
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={handleInspect}
+                disabled={inspecting || !ticketId.trim()}
+                className="w-full bg-gradient-to-r from-[#9B392D] to-[#7d2e24] hover:from-[#7d2e24] hover:to-[#5d1f1a] disabled:opacity-50 h-12 text-base font-medium"
+              >
+                {inspecting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Inspecting...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-5 h-5 mr-2" />
+                    Validate Ticket
+                  </>
+                )}
+              </Button>
+            </div>
+          </>
+        )}
 
         {/* Inspection History */}
         {inspectionHistory.length > 0 && (

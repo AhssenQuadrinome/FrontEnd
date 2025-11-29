@@ -33,7 +33,7 @@ import DriverIncidentsPage from "./components/driver/pages/IncidentsPage";
 import DriverPlanningPage from "./components/driver/pages/PlanningPage";
 import DriverProfilePage from "./components/driver/pages/ProfilePage";
 
-import ControllerValidateTicketsPage from "./components/controller/pages/ValidateTicketsPage";
+import PassengerInspectionPage from "./components/controller/pages/PassengerInspectionPage";
 import ControllerReportsPage from "./components/controller/pages/ReportsPage";
 import ControllerProfilePage from "./components/controller/pages/ProfilePage";
 import { Toaster } from "./components/ui/toaster";
@@ -78,7 +78,7 @@ createRoot(document.getElementById("app") as HTMLElement).render(
   <Route path="/driver/profile" element={<DriverProfilePage />} />
 
   {/* Controller dashboard split pages */}
-  <Route path="/controller/validate" element={<ControllerValidateTicketsPage />} />
+  <Route path="/controller/validate" element={<PassengerInspectionPage />} />
   <Route path="/controller/reports" element={<ControllerReportsPage />} />
   <Route path="/controller/profile" element={<ControllerProfilePage />} />
       </Routes>

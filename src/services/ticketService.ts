@@ -138,7 +138,7 @@ const ticketService = {
       });
       return {
         valid: true,
-        message: response.data || 'Ticket inspection successful',
+        message: response.data || 'Ticket was validated - Passenger can board',
         ticket: {} as Ticket // Backend may return ticket details
       };
     } catch (error: any) {
@@ -149,13 +149,12 @@ const ticketService = {
         const data = error.response.data;
         
         if (status === 404) {
-          errorMessage = 'Ticket not found or not valid for this route';
+          errorMessage = 'Ticket not found';
+        } else if (status === 403) {
+          // This is the specific case when ticket was NOT validated - possible fraud
+          errorMessage = typeof data === 'string' ? data : 'Ticket was NOT validated - Possible fraud';
         } else if (status === 400) {
           errorMessage = typeof data === 'string' ? data : (data?.message || 'Invalid ticket or route mismatch');
-        } else if (status === 410) {
-          errorMessage = 'Ticket has already been used';
-        } else if (status === 403) {
-          errorMessage = 'Ticket has expired';
         } else {
           errorMessage = typeof data === 'string' ? data : (data?.message || errorMessage);
         }
