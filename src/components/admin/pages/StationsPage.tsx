@@ -399,34 +399,34 @@ export default function StationsPage() {
                     return (
                       <tr
                         key={station.id}
-                        className={`hover:bg-gray-50 transition-colors ${isInactive ? 'bg-gray-100 opacity-60' : ''}`}
+                        className={`hover:bg-gray-50 transition-colors ${false ? 'bg-gray-100 opacity-60' : ''}`}
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold shadow-sm ${
-                              isInactive 
+                              false 
                                 ? 'bg-gradient-to-br from-gray-400 to-gray-500' 
                                 : 'bg-gradient-to-br from-[#A54033] to-[#8B2F24]'
                             }`}>
                               <MapPin className="w-5 h-5" />
                             </div>
                             <div className="flex flex-col">
-                              <span className={`font-medium ${isInactive ? 'text-gray-500' : 'text-gray-900'}`}>
+                              <span className={`font-medium ${false ? 'text-gray-500' : 'text-gray-900'}`}>
                                 {station.name}
                               </span>
-                              {isInactive && (
+                              {false && (
                                 <span className="text-xs text-gray-500 font-medium">Inactive</span>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td className={`px-6 py-4 text-sm ${isInactive ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <td className={`px-6 py-4 text-sm ${false ? 'text-gray-400' : 'text-gray-600'}`}>
                           {station.code}
                         </td>
-                        <td className={`px-6 py-4 text-sm ${isInactive ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <td className={`px-6 py-4 text-sm ${false ? 'text-gray-400' : 'text-gray-600'}`}>
                           {station.address || '-'}
                         </td>
-                        <td className={`px-6 py-4 text-sm ${isInactive ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <td className={`px-6 py-4 text-sm ${false ? 'text-gray-400' : 'text-gray-600'}`}>
                           <div className="flex flex-col">
                             <span>Lat: {station.latitude.toFixed(6)}</span>
                             <span>Lng: {station.longitude.toFixed(6)}</span>

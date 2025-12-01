@@ -46,9 +46,10 @@ export default function DashboardLayout({
   ];
   const adminNavigation = [
     { name: 'Overview', icon: <TrendingUp />, path: '/admin/overview' },
+    { name: 'Tickets', icon: <Ticket />, path: '/admin/tickets' },
+
     { name: 'Users', icon: <UserIcon />, path: '/admin/users' },
     { name: 'Stations', icon: <MapPin />, path: '/admin/stations' },
-    { name: 'Tickets', icon: <Ticket />, path: '/admin/tickets' },
     { name: 'Routes', icon: <Map />, path: '/admin/routes' },
     { name: 'Geolocation', icon: <Map />, path: '/admin/geolocation' },
     { name: 'Incidents', icon: <Bell />, path: '/admin/incidents' },
