@@ -11,6 +11,11 @@ export interface TicketPurchaseRequest {
   };
 }
 
+export interface TicketPurchaseResponse {
+  ticketRequestId: string;
+  status: 'PAYMENT_PENDING';
+}
+
 export interface Ticket {
   id: string;
   userId: string;
@@ -49,7 +54,7 @@ export interface TicketValidation {
 // Ticket Service
 const ticketService = {
   // Purchase Ticket
-  async purchase(data: TicketPurchaseRequest): Promise<Ticket> {
+  async purchase(data: TicketPurchaseRequest): Promise<TicketPurchaseResponse> {
     const response = await api.post(`${TICKET_BASE_URL}/purchase`, data);
     return response.data;
   },

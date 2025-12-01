@@ -95,19 +95,21 @@ export default function BuyTicketPage() {
     
     try {
       setPurchasing(true);
-      console.log('[BuyTicketPage] Purchasing ticket for route:', routeId, 'Price:', price);
+      console.log('[BuyTicketPage] Creating ticket request for route:', routeId, 'Price:', price);
       
-      const ticket = await ticketService.purchase({
+      // Step 1: Create ticket purchase request
+      const ticketResponse = await ticketService.purchase({
         route: {
           id: routeId,
           price: price
         }
       });
       
-      console.log('[BuyTicketPage] Ticket purchased successfully:', ticket);
-      toast.success("✅ Billet acheté avec succès!\n\nVotre billet a été envoyé par email.")
-      // Redirect to tickets page
-      navigate('/passenger/tickets');
+      console.log('[BuyTicketPage] Ticket request created:', ticketResponse);
+      
+      // Step 2: Redirect to payment page with ticket request ID
+      toast.success('Redirection vers le paiement...');
+      navigate(`/passenger/payment?ticketRequestId=${ticketResponse.ticketRequestId}`);
     } catch (err: any) {
       console.error('[BuyTicketPage] Purchase failed:', err);
       const errorMessage = err.response?.data?.message || 'Échec de l\'achat du billet';

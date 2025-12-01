@@ -5,8 +5,11 @@ import { QrCode } from 'lucide-react';
 import authService from '../../../services/authService';
 import ticketService, { Ticket } from '../../../services/ticketService';
 import routeService, { Route } from '../../../services/routeService';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 export default function TicketsPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [routes, setRoutes] = useState<Map<string, Route>>(new Map());
@@ -18,8 +21,21 @@ export default function TicketsPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const shouldRefresh = searchParams.get('refresh') === 'true';
+    
+    if (shouldRefresh) {
+      console.log('[TicketsPage] Refresh requested from payment success - waiting for webhook processing...');
+      // Wait 2 seconds for webhook to process and create ticket
+      setTimeout(() => {
+        fetchData();
+        // Remove the refresh parameter from URL
+        navigate('/passenger/tickets', { replace: true });
+      }, 2000);
+    } else {
+      // Normal load without delay
+      fetchData();
+    }
+  }, [searchParams]);
 
   const fetchData = async () => {
     try {
