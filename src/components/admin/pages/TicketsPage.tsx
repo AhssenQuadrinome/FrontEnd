@@ -1,23 +1,70 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../../DashboardLayout";
 import { Ticket, CheckCircle, DollarSign, AlertTriangle, Download, Bell, MapPin } from "lucide-react";
 import { User } from '../../../types';
 import { TrendingUp, Users, Bus } from "lucide-react";
+import authService from "../../../services/authService";
+import adminStatsService from "../../../services/adminStatsService";
 
 // User model and roles
 export type UserRole = "admin" | "driver" | "controller" | "passenger";
 
-const mockUser: User = {
-  id: "4",
-  name: "Admin User",
-  email: "ourbusway2025@outlook.com",
-  role: "admin",
-};
-
 export default function TicketsPage() {
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
   const [hoveredSegment, setHoveredSegment] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Stats state
+  const [ticketsSold, setTicketsSold] = useState({ count: 0, growth: 0 });
+  const [revenueToday, setRevenueToday] = useState({ revenue: 0, growth: 0 });
+  const [totalTransactions, setTotalTransactions] = useState({ total: 0, avgDaily: 0 });
+  const [revenueByType, setRevenueByType] = useState<any>(null);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const profile = await authService.getProfile();
+      setUser({
+        id: profile.id,
+        name: `${profile.firstName} ${profile.lastName}`,
+        email: profile.email,
+        role: profile.role.toLowerCase() as UserRole,
+      });
+
+      // Fetch all stats in parallel
+      const [ticketsData, revenueData, transactionsData, revenueTypeData] = await Promise.all([
+        adminStatsService.getTicketsSoldToday(),
+        adminStatsService.getRevenueToday(),
+        adminStatsService.getTotalTransactions(),
+        adminStatsService.getRevenueByType(),
+      ]);
+
+      setTicketsSold({ count: ticketsData.count, growth: ticketsData.growthPercentage });
+      setRevenueToday({ revenue: revenueData.revenue, growth: revenueData.growthPercentage });
+      setTotalTransactions({ total: transactionsData.totalTransactions, avgDaily: transactionsData.avgDailyRevenue });
+      console.log(revenueTypeData)
+      setRevenueByType(revenueTypeData);
+
+      console.log('[AdminTicketsPage] Stats loaded successfully');
+    } catch (err) {
+      console.error('[AdminTicketsPage] Failed to fetch data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const currentUser: User = user || {
+    id: "4",
+    name: "Admin User",
+    email: "ourbusway2025@outlook.com",
+    role: "admin",
+  };
 
   const navigation = [
     { name: "Overview", icon: <TrendingUp />, active: false, onClick: () => navigate("/admin/overview") },
@@ -29,38 +76,72 @@ export default function TicketsPage() {
     { name: "Notifications", icon: <Bell />, active: false, onClick: () => navigate("/admin/notifications") },
   ];
 
-  const revenueData = [
-    { label: "Single Tickets", value: 6170, percentage: 50, color: "#A54033" },
-    { label: "Monthly Subscriptions", value: 4936, percentage: 40, color: "#8B2F24" },
-    { label: "Annual Subscriptions", value: 1234, percentage: 10, color: "#D4604F" },
+  // Dynamic revenue data from backend (excluding annual subscriptions)
+  const revenueData = revenueByType ? [
+    { 
+      label: revenueByType.singleTickets.label, 
+      value: revenueByType.singleTickets.revenue, 
+      percentage: revenueByType.singleTickets.percentage, 
+      color: "#A54033" 
+    },
+    { 
+      label: revenueByType.monthlySubscriptions.label, 
+      value: revenueByType.monthlySubscriptions.revenue, 
+      percentage: revenueByType.monthlySubscriptions.percentage, 
+      color: "#8B2F24" 
+    },
+  ] : [
+    { label: "Single Tickets", value: 0, percentage: 100, color: "#A54033" },
+    { label: "Monthly Subscriptions", value: 0, percentage: 0, color: "#8B2F24" },
   ];
 
   // Calculate SVG pie chart segments
   const createPieSegments = () => {
     let currentAngle = -90;
-    return revenueData.map((item, index) => {
-      const angle = (item.percentage / 100) * 360;
-      const startAngle = currentAngle;
-      const endAngle = currentAngle + angle;
-      
-      const x1 = 50 + 45 * Math.cos((Math.PI * startAngle) / 180);
-      const y1 = 50 + 45 * Math.sin((Math.PI * startAngle) / 180);
-      const x2 = 50 + 45 * Math.cos((Math.PI * endAngle) / 180);
-      const y2 = 50 + 45 * Math.sin((Math.PI * endAngle) / 180);
-      
-      const largeArc = angle > 180 ? 1 : 0;
-      const path = `M 50 50 L ${x1} ${y1} A 45 45 0 ${largeArc} 1 ${x2} ${y2} Z`;
-      
-      currentAngle = endAngle;
-      
-      return { ...item, path, index };
-    });
+    return revenueData
+      .filter(item => item.percentage > 0) // Only show segments with actual data
+      .map((item, index) => {
+        const angle = (item.percentage / 100) * 360;
+        const startAngle = currentAngle;
+        const endAngle = currentAngle + angle;
+        
+        // Handle 100% case - draw full circle
+        if (angle >= 359.99) {
+          const path = `M 50 5 A 45 45 0 1 1 49.99 5 Z`;
+          return { ...item, path, index };
+        }
+        
+        const x1 = 50 + 45 * Math.cos((Math.PI * startAngle) / 180);
+        const y1 = 50 + 45 * Math.sin((Math.PI * startAngle) / 180);
+        const x2 = 50 + 45 * Math.cos((Math.PI * endAngle) / 180);
+        const y2 = 50 + 45 * Math.sin((Math.PI * endAngle) / 180);
+        
+        const largeArc = angle > 180 ? 1 : 0;
+        const path = `M 50 50 L ${x1} ${y1} A 45 45 0 ${largeArc} 1 ${x2} ${y2} Z`;
+        
+        currentAngle = endAngle;
+        
+        return { ...item, path, index };
+      });
   };
 
   const pieSegments = createPieSegments();
 
+  if (loading) {
+    return (
+      <DashboardLayout user={currentUser} navigation={navigation} notificationCount={0}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A54033] mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading statistics...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <DashboardLayout user={mockUser} navigation={navigation} notificationCount={3}>
+    <DashboardLayout user={currentUser} navigation={navigation} notificationCount={0}>
       <div className="space-y-6">
         <h3 className="text-2xl font-bold text-gray-900">Tickets & Subscriptions</h3>
 
@@ -77,13 +158,9 @@ export default function TicketsPage() {
                       <Ticket className="w-7 h-7 text-white" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
-                    <TrendingUp className="w-4 h-4" />
-                    8%
-                  </div>
                 </div>
                 <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#8B2F24] bg-clip-text text-transparent mb-1">
-                  1,234
+                  {ticketsSold.count.toLocaleString()}
                 </p>
                 <p className="text-sm text-[#A54033] font-medium">Tickets Sold Today</p>
               </div>
@@ -101,13 +178,12 @@ export default function TicketsPage() {
                       <CheckCircle className="w-7 h-7 text-white" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 px-3 py-1 bg-[#8B2F24]/10 rounded-full text-[#8B2F24] text-sm font-semibold">
-                    <TrendingUp className="w-4 h-4" />
-                    15%
-                  </div>
+                  {/* <div className="flex items-center gap-1 px-3 py-1 bg-[#8B2F24]/10 rounded-full text-[#8B2F24] text-sm font-semibold">
+                    <span className="text-xs">N/A</span>
+                  </div> */}
                 </div>
                 <p className="text-4xl font-bold bg-gradient-to-r from-[#8B2F24] to-[#6B1F1A] bg-clip-text text-transparent mb-1">
-                  456
+                  0
                 </p>
                 <p className="text-sm text-[#8B2F24] font-medium">Active Subscriptions</p>
               </div>
@@ -125,13 +201,9 @@ export default function TicketsPage() {
                       <DollarSign className="w-7 h-7 text-white" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 px-3 py-1 bg-[#D4604F]/10 rounded-full text-[#D4604F] text-sm font-semibold">
-                    <TrendingUp className="w-4 h-4" />
-                    22%
-                  </div>
                 </div>
                 <p className="text-4xl font-bold bg-gradient-to-r from-[#D4604F] to-[#A54033] bg-clip-text text-transparent mb-1">
-                  $12.4K
+                  {revenueToday.revenue.toFixed(0)} MAD
                 </p>
                 <p className="text-sm text-[#D4604F] font-medium">Revenue Today</p>
               </div>
@@ -149,13 +221,12 @@ export default function TicketsPage() {
                       <AlertTriangle className="w-7 h-7 text-white" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
-                    <AlertTriangle className="w-4 h-4" />
-                    High
-                  </div>
+                  {/* <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
+                    <span className="text-xs">N/A</span>
+                  </div> */}
                 </div>
                 <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#8B2F24] bg-clip-text text-transparent mb-1">
-                  12
+                  0
                 </p>
                 <p className="text-sm text-[#A54033] font-medium">Fraud Alerts</p>
               </div>
@@ -191,7 +262,7 @@ export default function TicketsPage() {
                   <circle cx="50" cy="50" r="25" fill="white" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center flex-col">
-                  <p className="text-2xl font-bold text-[#181E4B]">$12.4K</p>
+                  <p className="text-2xl font-bold text-[#181E4B]">{revenueByType?.totalRevenue?.toFixed(0) || 0} MAD</p>
                   <p className="text-xs text-gray-600">Total Revenue</p>
                 </div>
               </div>
@@ -208,7 +279,7 @@ export default function TicketsPage() {
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
                     <span className="text-sm font-medium text-gray-700">{item.label}</span>
                   </div>
-                  <span className="text-sm font-semibold text-gray-900">{item.percentage}%</span>
+                  <span className="text-sm font-semibold text-gray-900">{item.percentage.toFixed(0)}%</span>
                 </div>
               ))}
             </div>
@@ -218,10 +289,10 @@ export default function TicketsPage() {
           <div className="lg:col-span-2 rounded-2xl shadow-lg p-6 bg-white/30 backdrop-blur-md border border-[#A54033]/40">
             <div className="flex items-center justify-between mb-6">
               <h4 className="text-lg font-bold text-[#181E4B]">Revenue Analytics</h4>
-              <button className="flex items-center gap-2 px-4 py-2 border border-[#181E4B]/40 text-[#181E4B] hover:bg-[#181E4B]/10 rounded-lg transition-colors text-sm font-medium">
+              {/* <button className="flex items-center gap-2 px-4 py-2 border border-[#181E4B]/40 text-[#181E4B] hover:bg-[#181E4B]/10 rounded-lg transition-colors text-sm font-medium">
                 <Download className="w-4 h-4" />
                 Export Report
-              </button>
+              </button> */}
             </div>
             <div className="space-y-6">
               {revenueData.map((item, index) => (
@@ -229,7 +300,7 @@ export default function TicketsPage() {
                   <div className="flex justify-between mb-2">
                     <span className="text-sm font-medium text-gray-700">{item.label}</span>
                     <span className="text-sm font-semibold text-gray-900">
-                      ${item.value.toLocaleString()} ({item.percentage}%)
+                      {item.value.toFixed(0)} MAD ({item.percentage.toFixed(0)}%)
                     </span>
                   </div>
                   <div className="relative w-full bg-[#181E4B]/10 rounded-full h-3 overflow-hidden">
@@ -250,17 +321,13 @@ export default function TicketsPage() {
             {/* Quick Stats */}
             <div className="mt-8 grid grid-cols-2 gap-4">
               <div className="text-center p-4 bg-white/50 rounded-xl">
-                <p className="text-2xl font-bold text-[#A54033]">$6.2K</p>
+                <p className="text-2xl font-bold text-[#A54033]">{totalTransactions.avgDaily.toFixed(0)} MAD</p>
                 <p className="text-xs text-gray-600 mt-1">Avg. Daily Revenue</p>
               </div>
               <div className="text-center p-4 bg-white/50 rounded-xl">
-                <p className="text-2xl font-bold text-[#8B2F24]">1,690</p>
+                <p className="text-2xl font-bold text-[#8B2F24]">{totalTransactions.total.toLocaleString()}</p>
                 <p className="text-xs text-gray-600 mt-1">Total Transactions</p>
               </div>
-              {/* <div className="text-center p-4 bg-white/50 rounded-xl">
-                <p className="text-2xl font-bold text-[#D4604F]">+18%</p>
-                <p className="text-xs text-gray-600 mt-1">Growth Rate</p>
-              </div> */}
             </div>
           </div>
         </div>

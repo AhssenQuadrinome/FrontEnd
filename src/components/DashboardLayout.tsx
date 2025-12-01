@@ -42,7 +42,7 @@ export default function DashboardLayout({
     { name: 'Subscription', icon: <TrendingUp />, path: '/passenger/subscription' },
     { name: 'Routes & Trips', icon: <Map />, path: '/passenger/trips' },
     { name: 'Profile', icon: <UserIcon />, path: '/passenger/profile' },
-    { name: 'Notifications', icon: <Bell />, path: '/passenger/notifications' },
+    // { name: 'Notifications', icon: <Bell />, path: '/passenger/notifications' },
   ];
   const adminNavigation = [
     { name: 'Overview', icon: <TrendingUp />, path: '/admin/overview' },
@@ -53,7 +53,7 @@ export default function DashboardLayout({
     { name: 'Routes', icon: <Map />, path: '/admin/routes' },
     { name: 'Geolocation', icon: <Map />, path: '/admin/geolocation' },
     { name: 'Incidents', icon: <Bell />, path: '/admin/incidents' },
-    { name: 'Notifications', icon: <Bell />, path: '/admin/notifications' },
+    // { name: 'Notifications', icon: <Bell />, path: '/admin/notifications' },
   ];
   const driverNavigation = [
     { name: 'My Trips', icon: <Ticket />, path: '/driver/trips' },
@@ -100,7 +100,7 @@ export default function DashboardLayout({
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">
-              <button 
+              {/* <button 
                 onClick={onNotificationClick}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors relative"
               >
@@ -110,7 +110,7 @@ export default function DashboardLayout({
                     {notificationCount > 9 ? '9+' : notificationCount}
                   </span>
                 )}
-              </button>
+              </button> */}
             </div>
             {/* Admin Info and Logout */}
             <div className="flex items-center gap-3 pl-4 border-l border-gray-200">

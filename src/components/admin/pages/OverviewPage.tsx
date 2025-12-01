@@ -1,68 +1,89 @@
 import {
   Users,
   Ticket,
-  TrendingUp,
   DollarSign,
   Bus,
-  AlertTriangle,
-  MapPin,
-  Bell
+  AlertTriangle
 } from 'lucide-react';
 import DashboardLayout from '../../DashboardLayout';
-import { User, Incident } from '../../../types';
-import { useNavigate } from 'react-router-dom';
-
-const mockUser: User = {
-  id: '4',
-  name: 'Admin User',
-  email: 'ourbusway2025@outlook.com',
-  role: 'admin',
-};
-
-const mockRoutes = [
-  { id: '1', name: 'Line 15', number: '15', stations: 12, status: 'active', buses: 8 },
-  { id: '2', name: 'Line 8', number: '8', stations: 10, status: 'active', buses: 6 },
-  { id: '3', name: 'Line 22', number: '22', stations: 15, status: 'active', buses: 10 },
-];
+import { User, UserRole, Incident } from '../../../types';
+import { useEffect, useState } from 'react';
+import authService from '../../../services/authService';
+import routeService, { Route } from '../../../services/routeService';
+import adminStatsService from '../../../services/adminStatsService';
 
 const mockIncidents: Incident[] = [
-  {
-    id: '1',
-    type: 'delay',
-    tripId: 'TR001',
-    routeName: 'Line 15',
-    description: 'Heavy traffic on main boulevard',
-    reportedBy: 'Karim Benali',
-    reportedAt: '2025-10-28T13:45:00',
-    status: 'open',
-    severity: 'medium',
-  },
-  {
-    id: '2',
-    type: 'technical',
-    tripId: 'TR005',
-    routeName: 'Line 8',
-    description: 'Engine overheating',
-    reportedBy: 'Ali Meziane',
-    reportedAt: '2025-10-28T12:30:00',
-    status: 'resolved',
-    severity: 'high',
-  },
+  // Incidents service not yet implemented - keeping as 0 for now
 ];
 
 export default function OverviewPage() {
-  const navigate = useNavigate();
-  const navigation = [
-    { name: 'Overview', icon: <TrendingUp />, active: true, onClick: () => navigate('/admin/overview') },
-    { name: 'Users', icon: <Users />, active: false, onClick: () => navigate('/admin/users') },
-    { name: 'Tickets', icon: <Ticket />, active: false, onClick: () => navigate('/admin/tickets') },
-    { name: 'Routes', icon: <Bus />, active: false, onClick: () => navigate('/admin/routes') },
-    { name: 'Geolocation', icon: <MapPin />, active: false, onClick: () => navigate('/admin/geolocation') },
-    { name: 'Incidents', icon: <AlertTriangle />, active: false, onClick: () => navigate('/admin/incidents') },
-    { name: 'Notifications', icon: <Bell />, active: false, onClick: () => navigate('/admin/notifications') },
-  ];
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [totalUsers, setTotalUsers] = useState<number>(0);
+  const [totalRoutes, setTotalRoutes] = useState<number>(0);
+  const [totalBuses, setTotalBuses] = useState<number>(0);
+  const [ticketsSoldToday, setTicketsSoldToday] = useState<number>(0);
+  const [revenueToday, setRevenueToday] = useState<number>(0);
+  const [routes, setRoutes] = useState<Route[]>([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch all data in parallel
+      const [profile, usersData, routesData, statsData, revenueData] = await Promise.all([
+        authService.getProfile(),
+        authService.getAllUsers(0, 1000), // Get all users
+        routeService.getAllRoutes(0, 100), // Get all routes
+        adminStatsService.getTicketsSoldToday(),
+        adminStatsService.getRevenueToday(), // Get revenue today
+      ]);
+
+      // Transform UserProfile to User
+      setUser({
+        id: profile.id,
+        name: `${profile.firstName} ${profile.lastName}`,
+        email: profile.email,
+        role: profile.role as UserRole,
+      });
+      setTotalUsers(usersData.totalElements);
+      setTotalRoutes(routesData.content.length);
+      
+      // Count total buses from all routes (each route has config.busCount)
+      const busCount = routesData.content.reduce((sum, route) => sum + (route.config?.busCount || 0), 0);
+      setTotalBuses(busCount);
+      
+      setTicketsSoldToday(statsData.count);
+      setRevenueToday(revenueData.revenue); // Revenue today
+      
+      // Get first 3 active routes for display
+      setRoutes(routesData.content.filter(r => r.active).slice(0, 3));
+      
+    } catch (error) {
+      console.error('Failed to fetch overview data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  if (loading || !user) {
+    return (
+      <DashboardLayout 
+        user={user || { id: '', name: 'Loading...', email: '', role: 'admin' }} 
+        notificationCount={3}
+      >
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#A54033]"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
-    <DashboardLayout user={mockUser} navigation={navigation} notificationCount={3}>
+    <DashboardLayout user={user} notificationCount={3}>
       <div className="space-y-6">
         <h3 className="text-2xl font-bold text-gray-900">System Overview</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -77,13 +98,9 @@ export default function OverviewPage() {
                       <Users className="w-7 h-7 text-white" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
-                    <TrendingUp className="w-4 h-4" />
-                    12%
-                  </div>
                 </div>
                 <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#A54033] bg-clip-text text-transparent mb-1">
-                  2,847
+                  {totalUsers.toLocaleString()}
                 </p>
                 <p className="text-sm text-[#A54033] font-medium">Total Users</p>
               </div>
@@ -100,13 +117,9 @@ export default function OverviewPage() {
                       <Ticket className="w-7 h-7 text-white" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
-                    <TrendingUp className="w-4 h-4" />
-                    8%
-                  </div>
                 </div>
                 <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#A54033] bg-clip-text text-transparent mb-1">
-                  1,234
+                  {ticketsSoldToday.toLocaleString()}
                 </p>
                 <p className="text-sm text-[#A54033] font-medium">Tickets Sold Today</p>
               </div>
@@ -125,7 +138,7 @@ export default function OverviewPage() {
                   </div>
                 </div>
                 <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#A54033] bg-clip-text text-transparent mb-1">
-                  24/26
+                  {totalBuses}/{totalBuses}
                 </p>
                 <p className="text-sm text-[#A54033] font-medium">Buses Active</p>
               </div>
@@ -142,13 +155,9 @@ export default function OverviewPage() {
                       <DollarSign className="w-7 h-7 text-white" />
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
-                    <TrendingUp className="w-4 h-4" />
-                    15%
-                  </div>
                 </div>
                 <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#A54033] bg-clip-text text-transparent mb-1">
-                  $12.4K
+                  {revenueToday.toFixed(0)} MAD
                 </p>
                 <p className="text-sm text-[#A54033] font-medium">Revenue Today</p>
               </div>
@@ -157,58 +166,75 @@ export default function OverviewPage() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h4 className="text-lg font-bold text-gray-900 mb-4">Active Routes</h4>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-bold text-gray-900">Active Routes</h4>
+              <span className="px-3 py-1 bg-[#181E4B]/10 text-[#181E4B] rounded-full text-xs font-semibold">
+                {totalRoutes} Total
+              </span>
+            </div>
             <div className="space-y-3">
-              {mockRoutes.map((route) => (
-                <div key={route.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-[#A54033] to-[#8B2F24] rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                      {route.number}
+              {routes.length === 0 ? (
+                <p className="text-center text-gray-500 py-4">No active routes</p>
+              ) : (
+                routes.map((route) => (
+                  <div key={route.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#A54033] to-[#8B2F24] rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                        {route.number}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{route.name}</p>
+                        <p className="text-sm text-gray-600">{route.stations.length} stations • {route.config?.busCount || 0} buses</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{route.name}</p>
-                      <p className="text-sm text-gray-600">{route.stations} stations • {route.buses} buses</p>
-                    </div>
+                    <span className="px-3 py-1 bg-[#181E4B]/10 text-[#181E4B] rounded-full text-xs font-semibold">
+                      Active
+                    </span>
                   </div>
-                  <span className="px-3 py-1 bg-[#181E4B]/10 text-[#181E4B] rounded-full text-xs font-semibold">
-                    Active
-                  </span>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-bold text-gray-900">Recent Incidents</h4>
               <span className="px-3 py-1 bg-[#181E4B]/10 text-[#181E4B] rounded-full text-xs font-semibold">
-                {mockIncidents.filter(i => i.status === 'open').length} Open
+                0 Open
               </span>
             </div>
             <div className="space-y-3">
-              {mockIncidents.map((incident) => (
-                <div key={incident.id} className={`p-4 rounded-lg border ${
-                  incident.status === 'open' ? 'bg-[#181E4B]/5 border-[#181E4B]/30' : 'bg-gray-50 border-gray-200'
-                }`}>
-                  <div className="flex items-start gap-3">
-                    <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                      incident.severity === 'high' ? 'text-red-600' :
-                      incident.severity === 'medium' ? 'text-yellow-600' : 'text-blue-600'
-                    }`} />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-semibold text-gray-900 capitalize">{incident.type}</p>
-                        <span className={`text-xs font-medium ${
-                          incident.status === 'open' ? 'text-red-600' : 'text-[#181E4B]'
-                        }`}>
-                          {incident.status.toUpperCase()}
-                        </span>
+              {mockIncidents.length === 0 ? (
+                <div className="text-center py-8">
+                  <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 text-sm">No incidents reported</p>
+                  <p className="text-gray-400 text-xs mt-1">Incident service not yet implemented</p>
+                </div>
+              ) : (
+                mockIncidents.map((incident) => (
+                  <div key={incident.id} className={`p-4 rounded-lg border ${
+                    incident.status === 'open' ? 'bg-[#181E4B]/5 border-[#181E4B]/30' : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                        incident.severity === 'high' ? 'text-red-600' :
+                        incident.severity === 'medium' ? 'text-yellow-600' : 'text-blue-600'
+                      }`} />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="font-semibold text-gray-900 capitalize">{incident.type}</p>
+                          <span className={`text-xs font-medium ${
+                            incident.status === 'open' ? 'text-red-600' : 'text-[#181E4B]'
+                          }`}>
+                            {incident.status.toUpperCase()}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1">{incident.description}</p>
+                        <p className="text-xs text-gray-500">{incident.routeName} • {incident.reportedBy}</p>
                       </div>
-                      <p className="text-sm text-gray-600 mb-1">{incident.description}</p>
-                      <p className="text-xs text-gray-500">{incident.routeName} • {incident.reportedBy}</p>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         </div>
