@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, CheckCircle, MapPin } from 'lucide-react';
 import DashboardLayout from '../../DashboardLayout';
 import { User } from '../../../types';
@@ -6,8 +6,6 @@ import authService from '../../../services/authService';
 import incidentService, { IncidentType, IncidentResponse } from '../../../services/incidentService';
 import routeService, { Route } from '../../../services/routeService';
 import { toast } from 'sonner';
-
-const STORAGE_KEY = 'driver_reported_incidents';
 
 export default function IncidentsPage() {
   const [showIncidentModal, setShowIncidentModal] = useState(false);
@@ -20,6 +18,7 @@ export default function IncidentsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(false);
+  const [loadingIncidents, setLoadingIncidents] = useState(true);
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [gettingLocation, setGettingLocation] = useState(false);
   const [routeDetailsMap, setRouteDetailsMap] = useState<Map<string, Route>>(new Map());
@@ -52,18 +51,40 @@ export default function IncidentsPage() {
         });
     }
 
-    // Load previously reported incidents from localStorage
-    const savedIncidents = localStorage.getItem(STORAGE_KEY);
-    if (savedIncidents) {
-      try {
-        setReportedIncidents(JSON.parse(savedIncidents));
-      } catch (error) {
-        console.error('Failed to load incidents:', error);
-      }
-    }
+    // Clear old localStorage data (migration)
+    localStorage.removeItem('driver_reported_incidents');
+
+    // Fetch incidents from backend
+    fetchIncidents();
 
     // Fetch all routes for the dropdown
     fetchRoutes();
+
+  }, []);
+
+  const fetchIncidents = useCallback(async () => {
+    try {
+      setLoadingIncidents(true);
+      const response = await incidentService.getAllIncidents(0, 100);
+      
+      // Get user profile to get the UUID
+      const userProfile = await authService.getProfile();
+      
+      if (userProfile && userProfile.id) {
+        // Filter to show only incidents reported by the current driver using UUID
+        const driverIncidents = response.content.filter(
+          incident => incident.driverId === userProfile.id
+        );
+        setReportedIncidents(driverIncidents);
+      } else {
+        setReportedIncidents(response.content);
+      }
+    } catch (error) {
+      console.error('Failed to fetch incidents:', error);
+      toast.error('Failed to load incidents');
+    } finally {
+      setLoadingIncidents(false);
+    }
   }, []);
 
   const fetchRoutes = async () => {
@@ -111,13 +132,6 @@ export default function IncidentsPage() {
       }
     );
   };
-
-  // Save incidents to localStorage whenever they change
-  useEffect(() => {
-    if (reportedIncidents.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(reportedIncidents));
-    }
-  }, [reportedIncidents]);
 
   // Fetch route details for all incidents when they change
   useEffect(() => {
@@ -169,7 +183,7 @@ export default function IncidentsPage() {
 
     try {
       setSubmitting(true);
-      const response = await incidentService.reportIncident({
+      await incidentService.reportIncident({
         routeId: routeId,
         busId: busId,
         type: incidentType,
@@ -179,8 +193,8 @@ export default function IncidentsPage() {
         longitude: currentLocation.longitude,
       });
 
-      // Add the new incident to the list
-      setReportedIncidents(prev => [response, ...prev]);
+      // Refresh incidents list from backend
+      await fetchIncidents();
       
       toast.success('Incident reported successfully!', {
         description: 'Your incident has been submitted to the system.',
@@ -217,9 +231,14 @@ export default function IncidentsPage() {
             </button>
           </div>
 
-          <div className="space-y-4">
-            {reportedIncidents.map((incident) => {
-              const route = routeDetailsMap.get(incident.routeId);
+          {loadingIncidents ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-coral"></div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {reportedIncidents.map((incident) => {
+                const route = routeDetailsMap.get(incident.routeId);
               return (
                 <div key={incident.id} className="bg-white rounded-xl shadow-md border border-cream-dark overflow-hidden">
                   <div
@@ -305,14 +324,15 @@ export default function IncidentsPage() {
               );
             })}
 
-            {reportedIncidents.length === 0 && (
-              <div className="bg-white rounded-xl shadow-md p-12 text-center">
-                <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-                <h4 className="text-xl font-bold text-navy mb-2">No Incidents Reported</h4>
-                <p className="text-gray-600">All trips are running smoothly today!</p>
-              </div>
-            )}
-          </div>
+              {reportedIncidents.length === 0 && (
+                <div className="bg-white rounded-xl shadow-md p-12 text-center">
+                  <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
+                  <h4 className="text-xl font-bold text-navy mb-2">No Incidents Reported</h4>
+                  <p className="text-gray-600">All trips are running smoothly today!</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </DashboardLayout>
 

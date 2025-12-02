@@ -97,18 +97,34 @@ const authService = {
     const token = response.data.access_token;
     
     if (token) {
-      // Decode JWT to get user info
-      const decoded = jwtDecode<JWTPayload>(token);
-      const user = {
-        id: decoded.userId || decoded.sub,
-        email: decoded.sub,
-        role: decoded.role,
-      };
-      
+      // Store token first so subsequent API calls work
       localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
       
-      return { token, user };
+      // Decode JWT to get basic info
+      const decoded = jwtDecode<JWTPayload>(token);
+      
+      // Fetch full profile to get the correct UUID
+      try {
+        const profile = await this.getProfile();
+        const user = {
+          id: profile.id, // Use the UUID from profile
+          email: profile.email,
+          role: decoded.role,
+        };
+        
+        localStorage.setItem('user', JSON.stringify(user));
+        return { token, user };
+      } catch (error) {
+        // Fallback if profile fetch fails
+        const user = {
+          id: decoded.userId || decoded.sub,
+          email: decoded.sub,
+          role: decoded.role,
+        };
+        
+        localStorage.setItem('user', JSON.stringify(user));
+        return { token, user };
+      }
     }
     throw new Error('No token received');
   },
