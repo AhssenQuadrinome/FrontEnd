@@ -98,7 +98,7 @@ const authService = {
     
     if (token) {
       // Store token first so subsequent API calls work
-      localStorage.setItem('token', token);
+      sessionStorage.setItem('token', token);
       
       // Decode JWT to get basic info
       const decoded = jwtDecode<JWTPayload>(token);
@@ -112,7 +112,7 @@ const authService = {
           role: decoded.role,
         };
         
-        localStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('user', JSON.stringify(user));
         return { token, user };
       } catch (error) {
         // Fallback if profile fetch fails
@@ -122,7 +122,7 @@ const authService = {
           role: decoded.role,
         };
         
-        localStorage.setItem('user', JSON.stringify(user));
+        sessionStorage.setItem('user', JSON.stringify(user));
         return { token, user };
       }
     }
@@ -197,20 +197,20 @@ const authService = {
     try {
       await api.post(`${AUTH_BASE_URL}/logout`);
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
     }
   },
 
-  // Get current user from localStorage
+  // Get current user from sessionStorage
   getCurrentUser(): any {
-    const user = localStorage.getItem('user');
+    const user = sessionStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   },
 
   // Check if user is authenticated
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
+    return !!sessionStorage.getItem('token');
   },
 };
 
