@@ -4,7 +4,7 @@ import { AlertTriangle, CheckCircle, BarChart3, MapPin } from "lucide-react";
 import { User } from "../../../types";
 import incidentService, { IncidentResponse } from "../../../services/incidentService";
 import routeService, { Route } from "../../../services/routeService";
-import authService from "../../../services/authService";
+import authService, { UserGetResource } from "../../../services/authService";
 import { toast } from "sonner";
 
 export default function IncidentsPage() {
@@ -12,6 +12,7 @@ export default function IncidentsPage() {
 	const [incidents, setIncidents] = useState<IncidentResponse[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [routeDetailsMap, setRouteDetailsMap] = useState<Map<string, Route>>(new Map());
+	const [driverDetailsMap, setDriverDetailsMap] = useState<Map<string, UserGetResource>>(new Map());
 	const [updatingIncidents, setUpdatingIncidents] = useState<Set<string>>(new Set());
 
 	useEffect(() => {
@@ -80,6 +81,35 @@ export default function IncidentsPage() {
 
 		if (incidents.length > 0) {
 			fetchRouteDetails();
+		}
+	}, [incidents]);
+
+	// Fetch driver details for all incidents
+	useEffect(() => {
+		const fetchDriverDetails = async () => {
+			const uniqueDriverIds = [...new Set(incidents.map(incident => incident.driverId).filter(Boolean))];
+			const newDriverDetails = new Map(driverDetailsMap);
+
+			// Fetch all users first
+			try {
+				const usersResponse = await authService.getAllUsers(0, 1000);
+				const drivers = usersResponse.content.filter(user => user.role === 'DRIVER');
+				
+				// Map drivers by ID
+				for (const driver of drivers) {
+					if (uniqueDriverIds.includes(driver.id) && !newDriverDetails.has(driver.id)) {
+						newDriverDetails.set(driver.id, driver);
+					}
+				}
+
+				setDriverDetailsMap(newDriverDetails);
+			} catch (error) {
+				console.error('Failed to fetch driver details:', error);
+			}
+		};
+
+		if (incidents.length > 0) {
+			fetchDriverDetails();
 		}
 	}, [incidents]);
 
@@ -238,10 +268,20 @@ export default function IncidentsPage() {
 												)}
 
 												<div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
-													<div>
-														<span className="font-semibold text-navy">Driver ID:</span>{' '}
-														{incident.driverId}
-													</div>
+													{(() => {
+														const driver = driverDetailsMap.get(incident.driverId);
+														return driver ? (
+															<div>
+																<span className="font-semibold text-navy">Driver:</span>{' '}
+																{driver.firstName} {driver.lastName} ({driver.email})
+															</div>
+														) : (
+															<div>
+																<span className="font-semibold text-navy">Driver ID:</span>{' '}
+																{incident.driverId}
+															</div>
+														);
+													})()}
 													<div>
 														<span className="font-semibold text-navy">Reported:</span>{' '}
 														{new Date(incident.reportedAt).toLocaleString()}
