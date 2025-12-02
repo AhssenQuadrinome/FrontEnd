@@ -65,7 +65,7 @@ export default function DashboardLayout({
   ];
   const controllerNavigation = [
     { name: 'Validate Tickets', icon: <Ticket />, path: '/controller/validate' },
-    { name: 'Reports', icon: <TrendingUp />, path: '/controller/reports' },
+    // { name: 'Reports', icon: <TrendingUp />, path: '/controller/reports' },
     { name: 'Profile', icon: <UserIcon />, path: '/controller/profile' },
   ];
   

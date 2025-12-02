@@ -235,10 +235,10 @@ export default function ProfilePage() {
                   <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                     Active Account
                   </span>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                  {/* <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full flex items-center gap-1">
                     <Truck className="w-3 h-3" />
                     {busAssigned}
-                  </span>
+                  </span> */}
                 </div>
               </div>
             </div>
@@ -385,7 +385,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Driver Specific Information */}
-              <div className="md:col-span-2 mt-6 pt-6 border-t-2 border-gray-100">
+              {/* <div className="md:col-span-2 mt-6 pt-6 border-t-2 border-gray-100">
                 <h5 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                   <Truck className="w-5 h-5 text-[#9B392D]" />
                   Driver Information
@@ -422,7 +422,7 @@ export default function ProfilePage() {
                   className="h-12 rounded-xl border-2 border-gray-200 bg-gray-50"
                 />
                 <p className="text-xs text-gray-500 mt-1">Contact admin to change bus assignment</p>
-              </div>
+              </div> */}
 
               {/* Password Section - Only show when editing */}
               {isEditing && (
@@ -482,7 +482,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Account Info Card */}
-        <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl shadow-md border border-gray-200 p-6">
+        {/* <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl shadow-md border border-gray-200 p-6">
           <h5 className="text-lg font-bold text-gray-900 mb-4">Account Information</h5>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg p-4 border-l-4 border-[#9B392D]">
@@ -498,7 +498,7 @@ export default function ProfilePage() {
               <p className="text-lg font-bold text-green-600">Excellent</p>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </DashboardLayout>
   );
