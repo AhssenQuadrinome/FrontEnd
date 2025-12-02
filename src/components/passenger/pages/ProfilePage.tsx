@@ -434,7 +434,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Account Info Card */}
-        <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl shadow-md border border-gray-200 p-6">
+        {/* <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl shadow-md border border-gray-200 p-6">
           <h5 className="text-lg font-bold text-gray-900 mb-4">Account Information</h5>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg p-4 border-l-4 border-[#9B392D]">
@@ -450,7 +450,7 @@ export default function ProfilePage() {
               <p className="text-lg font-bold text-green-600">Active</p>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </DashboardLayout>
   );
