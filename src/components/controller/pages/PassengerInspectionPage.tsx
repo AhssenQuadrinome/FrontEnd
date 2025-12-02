@@ -24,6 +24,8 @@ interface InspectionRecord {
   timestamp: Date;
 }
 
+const STORAGE_KEY = 'controller_inspection_data';
+
 export default function PassengerInspectionPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [ticketId, setTicketId] = useState('');
@@ -34,6 +36,7 @@ export default function PassengerInspectionPage() {
   const [inspecting, setInspecting] = useState(false);
   const [inspectionHistory, setInspectionHistory] = useState<InspectionRecord[]>([]);
 
+  // Load data from localStorage on mount
   useEffect(() => {
     const user = authService.getCurrentUser();
     if (user) {
@@ -61,7 +64,40 @@ export default function PassengerInspectionPage() {
           });
         });
     }
+
+    // Restore saved data
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData);
+        setTripId(parsed.tripId || '');
+        setTripIdLocked(parsed.tripIdLocked || false);
+        // Convert timestamp strings back to Date objects
+        const history = (parsed.inspectionHistory || []).map((item: any) => ({
+          ...item,
+          timestamp: new Date(item.timestamp)
+        }));
+        setInspectionHistory(history);
+      } catch (error) {
+        console.error('Failed to restore inspection data:', error);
+      }
+    }
   }, []);
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    if (tripIdLocked && tripId) {
+      const dataToSave = {
+        tripId,
+        tripIdLocked,
+        inspectionHistory: inspectionHistory.map(item => ({
+          ...item,
+          timestamp: item.timestamp.toISOString()
+        }))
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+    }
+  }, [tripId, tripIdLocked, inspectionHistory]);
 
   const readQRCode = (file: File): Promise<string | null> => {
     return new Promise((resolve, reject) => {
@@ -165,6 +201,8 @@ export default function PassengerInspectionPage() {
     setTripId('');
     setTripQrImage(null);
     setInspectionHistory([]);
+    // Clear saved data from localStorage
+    localStorage.removeItem(STORAGE_KEY);
     toast.info('Trip changed', {
       description: 'Please enter the new trip ID.',
     });
