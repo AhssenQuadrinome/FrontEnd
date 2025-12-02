@@ -172,6 +172,12 @@ const authService = {
     return response.data;
   },
 
+  // Toggle User Status (Admin only - enable/disable user)
+  async toggleUserStatus(userId: string): Promise<UserGetResource> {
+    const response = await api.patch(`${AUTH_BASE_URL}/admin/users/${userId}/toggle-status`);
+    return response.data;
+  },
+
   // Forgot Password
   async forgotPassword(email: string): Promise<void> {
     await api.post(`${AUTH_BASE_URL}/users/forgot-password`, { email });

@@ -34,15 +34,22 @@ api.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response) {
       // Handle 401 Unauthorized - Token expired or invalid
+      // But don't redirect if it's a login attempt
       if (error.response.status === 401) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/login';
+        const isLoginRequest = error.config?.url?.includes('/login');
+        if (!isLoginRequest) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
       }
 
       // Handle 403 Forbidden - Insufficient permissions
+      // Log for debugging but let the calling code handle the error
       if (error.response.status === 403) {
-        console.error('Access denied: Insufficient permissions');
+        const errorData: any = error.response.data;
+        const message = errorData?.message || 'Access denied';
+        console.error('Access denied:', message);
       }
     }
     return Promise.reject(error);

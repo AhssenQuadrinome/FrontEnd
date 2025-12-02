@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import DashboardLayout from "../../DashboardLayout";
-import { Plus, Search, Filter, Eye, Edit, Trash2, X } from "lucide-react";
+import { Plus, Search, Filter, X } from "lucide-react";
 import { User } from "../../../types";
 import authService, { UserGetResource } from "../../../services/authService";
 import { Input } from "../../ui/input";
@@ -153,6 +153,28 @@ export default function UsersPage() {
 		}
 	};
 	
+	const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
+		try {
+			await authService.toggleUserStatus(userId);
+			
+			// Update the user in the local state
+			setUsers(prevUsers =>
+				prevUsers.map(user =>
+					user.id === userId
+						? { ...user, enabled: !currentStatus }
+						: user
+				)
+			);
+			
+			toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
+		} catch (err: any) {
+			const errorMessage = err.response?.data?.message || err.message || "Failed to update user status";
+			toast.error('Failed to update user status', {
+				description: errorMessage,
+			});
+		}
+	};
+	
 	// Filter users based on search query
 	const filteredUsers = users.filter(user =>
 		`${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -243,7 +265,7 @@ export default function UsersPage() {
 										Status
 									</th>
 									<th className="px-6 py-3 text-center text-xs font-semibold text-[#181E4B] uppercase tracking-wider">
-										Actions
+										Action
 									</th>
 								</tr>
 							</thead>
@@ -290,24 +312,17 @@ export default function UsersPage() {
 												</span>
 											</td>
 											<td className="px-6 py-4">
-												<div className="flex items-center justify-center gap-2">
-													<button 
-														className="p-2 text-gray-600 hover:text-[#A54033] hover:bg-[#A54033]/10 rounded-lg transition-colors"
-														title="View details"
+												<div className="flex items-center justify-center">
+													<button
+														onClick={() => handleToggleUserStatus(user.id, user.enabled)}
+														className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
+															user.enabled
+																? "bg-red-100 text-red-700 hover:bg-red-200 hover:shadow-md"
+																: "bg-green-100 text-green-700 hover:bg-green-200 hover:shadow-md"
+														}`}
+														title={user.enabled ? "Deactivate user" : "Activate user"}
 													>
-														<Eye className="w-4 h-4" />
-													</button>
-													<button 
-														className="p-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-														title="Edit user"
-													>
-														<Edit className="w-4 h-4" />
-													</button>
-													<button 
-														className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-														title="Delete user"
-													>
-														<Trash2 className="w-4 h-4" />
+														{user.enabled ? "Deactivate" : "Activate"}
 													</button>
 												</div>
 											</td>

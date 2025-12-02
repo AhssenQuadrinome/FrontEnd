@@ -32,7 +32,23 @@ const Login = (): JSX.Element => {
         navigate('/passenger/tickets');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Login failed. Please check your credentials.");
+      // Handle specific error cases
+      if (err.response?.status === 403) {
+        const errorMessage = err.response?.data?.message || "";
+        
+        // Check for specific error messages
+        if (errorMessage.includes("disabled") || errorMessage.includes("Disabled")) {
+          setError("Your account has been disabled by an administrator. Please contact support for assistance.");
+        } else if (errorMessage.includes("not yet validated") || errorMessage.includes("not activated") || errorMessage.includes("not yet activated")) {
+          setError("Your account is not yet activated. Please check your email for the activation link.");
+        } else {
+          setError(errorMessage || "Access denied. Please contact support.");
+        }
+      } else if (err.response?.status === 401) {
+        setError("Invalid email or password. Please try again.");
+      } else {
+        setError(err.response?.data?.message || err.message || "Login failed. Please check your credentials.");
+      }
     } finally {
       setLoading(false);
     }
