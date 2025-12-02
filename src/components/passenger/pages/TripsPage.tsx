@@ -5,6 +5,28 @@ import { Notification } from '../../../types';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 import authService from '../../../services/authService';
+import routeService, { Route } from '../../../services/routeService';
+
+interface DriverLocation {
+  driverId: string;
+  driverName: string;
+  driverEmail: string;
+  latitude: number;
+  longitude: number;
+  busNumber?: string;
+  speed: number;
+  timestamp: string;
+  isActive: boolean;
+}
+
+interface StationWithRoute {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  route: string;
+  code: string;
+}
 
 // Fetch real road route between coordinates using OSRM (free, no API key needed)
 async function fetchRoadRoute(coordinates: [number, number][]): Promise<[number, number][]> {
@@ -53,67 +75,7 @@ L.Icon.Default.mergeOptions({
 
 
 
-// Exact Rabat station coordinates on roads (verified to be on actual streets)
-const rabatStations = [
-  // Line 15: Agdal - Océan (Following Avenue Mohamed VI and coastal road)
-  { id: "s1", name: "Agdal", lat: 33.9716, lng: -6.8498, route: "15" },
-  { id: "s2", name: "Hay Riad", lat: 33.9811, lng: -6.8557, route: "15" },
-  { id: "s3", name: "Avenue Annakhil", lat: 33.9889, lng: -6.8612, route: "15" },
-  { id: "s4", name: "Place Pietri", lat: 33.9947, lng: -6.8651, route: "15" },
-  { id: "s5", name: "Bab El Had", lat: 34.0017, lng: -6.8698, route: "15" },
-  { id: "s6", name: "Avenue Al Marsa", lat: 34.0089, lng: -6.8634, route: "15" },
-  { id: "s7", name: "Plage de Rabat", lat: 34.0158, lng: -6.8521, route: "15" },
-  
-  // Line 8: Gare - Akkari - Témara (Following Avenue Hassan II and main roads)
-  { id: "s8", name: "Gare Rabat Ville", lat: 34.0129, lng: -6.8316, route: "8" },
-  { id: "s9", name: "Bab Chellah", lat: 34.0067, lng: -6.8267, route: "8" },
-  { id: "s10", name: "Avenue Moulay Youssef", lat: 33.9963, lng: -6.8234, route: "8" },
-  { id: "s11", name: "Akkari", lat: 33.9802, lng: -6.8156, route: "8" },
-  { id: "s12", name: "Yacoub El Mansour", lat: 33.9612, lng: -6.8423, route: "8" },
-  { id: "s13", name: "Témara Centre", lat: 33.9284, lng: -6.9067, route: "8" },
-  
-  // Line 22: Salé - Rabat Centre (Following main roads and bridge)
-  { id: "s14", name: "Tabriquet (Salé)", lat: 34.0501, lng: -6.7945, route: "22" },
-  { id: "s15", name: "Bab Lamrissa", lat: 34.0432, lng: -6.8018, route: "22" },
-  { id: "s16", name: "Place Bab Fès", lat: 34.0378, lng: -6.8123, route: "22" },
-  { id: "s17", name: "Pont Hassan II", lat: 34.0298, lng: -6.8187, route: "22" },
-  { id: "s18", name: "Bab El Alou", lat: 34.0213, lng: -6.8264, route: "22" },
-  { id: "s19", name: "Place des Alaouites", lat: 34.0156, lng: -6.8334, route: "22" },
-  { id: "s20", name: "Boulevard Mohamed V", lat: 34.0067, lng: -6.8412, route: "22" },
-];
 
-// Route trajectories following real roads in Rabat (detailed waypoints) - fallback if API fails
-const routeTrajectories: Record<string, Array<[number, number]>> = {
-  "15": [
-    [33.9716, -6.8498], [33.9745, -6.8512], [33.9767, -6.8524], [33.9789, -6.8538],
-    [33.9811, -6.8557], [33.9834, -6.8572], [33.9856, -6.8589], [33.9878, -6.8603],
-    [33.9889, -6.8612], [33.9908, -6.8625], [33.9928, -6.8638], [33.9947, -6.8651],
-    [33.9967, -6.8664], [33.9987, -6.8678], [34.0007, -6.8689], [34.0017, -6.8698],
-    [34.0034, -6.8693], [34.0051, -6.8681], [34.0068, -6.8667], [34.0078, -6.8655],
-    [34.0089, -6.8634], [34.0106, -6.8608], [34.0123, -6.8578], [34.0138, -6.8556],
-    [34.0148, -6.8539], [34.0158, -6.8521],
-  ],
-  "8": [
-    [34.0135, -6.8321], [34.0123, -6.8308], [34.0109, -6.8295], [34.0095, -6.8283],
-    [34.0078, -6.8274], [34.0067, -6.8267], [34.0045, -6.8256], [34.0023, -6.8247],
-    [34.0001, -6.8241], [33.9981, -6.8236], [33.9963, -6.8234], [33.9934, -6.8224],
-    [33.9904, -6.8208], [33.9874, -6.8189], [33.9838, -6.8172], [33.9802, -6.8156],
-    [33.9756, -6.8234], [33.9712, -6.8312], [33.9667, -6.8378], [33.9634, -6.8401],
-    [33.9612, -6.8423], [33.9545, -6.8567], [33.9478, -6.8712], [33.9412, -6.8834],
-    [33.9348, -6.8945], [33.9284, -6.9067],
-  ],
-  "22": [
-    [34.0501, -6.7945], [34.0489, -6.7956], [34.0478, -6.7967], [34.0467, -6.7978],
-    [34.0456, -6.7989], [34.0445, -6.8001], [34.0432, -6.8018], [34.0421, -6.8034],
-    [34.0409, -6.8051], [34.0398, -6.8067], [34.0389, -6.8089], [34.0383, -6.8106],
-    [34.0378, -6.8123], [34.0367, -6.8139], [34.0356, -6.8153], [34.0343, -6.8165],
-    [34.0329, -6.8174], [34.0313, -6.8181], [34.0298, -6.8187], [34.0282, -6.8197],
-    [34.0267, -6.8209], [34.0253, -6.8223], [34.0238, -6.8238], [34.0225, -6.8251],
-    [34.0213, -6.8264], [34.0198, -6.8284], [34.0184, -6.8303], [34.0171, -6.8319],
-    [34.0156, -6.8334], [34.0139, -6.8352], [34.0121, -6.8371], [34.0103, -6.8389],
-    [34.0086, -6.8401], [34.0067, -6.8412],
-  ],
-};
 
 // Create custom bus icon
 const createBusIcon = (color: string) => {
@@ -167,43 +129,6 @@ const createBusIcon = (color: string) => {
   });
 };
 
-// Mock real-time bus data with positions on routes
-const initialBuses = [
-	{
-		id: "1",
-		number: "BUS-101",
-		route: "15",
-		routeName: "Ligne Agdal-Océan",
-		driver: "Hiba EL OUERKHAOUI",
-		status: "active",
-		location: { lat: 33.9947, lng: -6.8651 },
-		speed: 45,
-		passengers: 32,
-	},
-	{
-		id: "2",
-		number: "BUS-205",
-		route: "8",
-		routeName: "Ligne Gare-Témara",
-		driver: "Meryem ELFADILI",
-		status: "active",
-		location: { lat: 34.0129, lng: -6.8316 },
-		speed: 38,
-		passengers: 28,
-	},
-	{
-		id: "3",
-		number: "BUS-312",
-		route: "22",
-		routeName: "Ligne Salé-Rabat",
-		driver: "Essahih Abderrahmane",
-		status: "active",
-		location: { lat: 34.0298, lng: -6.8187 },
-		speed: 42,
-		passengers: 25,
-	},
-];
-
 const mockNotifications: Notification[] = [
   {
     id: '1',
@@ -219,7 +144,9 @@ const mockNotifications: Notification[] = [
 export default function TripsPage() {
 	const [user, setUser] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
-	const [buses, setBuses] = useState(initialBuses);
+	const [routes, setRoutes] = useState<Route[]>([]);
+	const [stations, setStations] = useState<StationWithRoute[]>([]);
+	const [driverLocations, setDriverLocations] = useState<DriverLocation[]>([]);
 	const [selectedRoute, setSelectedRoute] = useState<string | null>(null);
 	const [realRoutes, setRealRoutes] = useState<Record<string, Array<[number, number]>>>({});
 	const [isLoadingRoutes, setIsLoadingRoutes] = useState(true);
@@ -239,84 +166,112 @@ export default function TripsPage() {
 		fetchProfile();
 	}, []);
 	
+	// Fetch routes and stations
+	useEffect(() => {
+		const loadRoutesAndStations = async () => {
+			try {
+				// Fetch routes (paginated, get all by setting large size)
+				const routesResponse = await routeService.getAllRoutes(0, 100);
+				setRoutes(routesResponse.content);
+				
+				// Fetch all stations with coordinates
+				const stationsResponse = await routeService.getAllStations(0, 1000);
+				const stationsMap = new Map(stationsResponse.content.map(s => [s.id, s]));
+				
+				// Build stations with route info from all routes
+				const allStations: StationWithRoute[] = [];
+				routesResponse.content.forEach(route => {
+					route.stations.forEach(routeStation => {
+						const stationDetails = stationsMap.get(routeStation.stationId);
+						if (stationDetails) {
+							allStations.push({
+								id: routeStation.stationId,
+								name: routeStation.name,
+								code: routeStation.code,
+								route: route.id,
+								lat: stationDetails.latitude,
+								lng: stationDetails.longitude,
+							});
+						}
+					});
+				});
+				setStations(allStations);
+			} catch (error) {
+				console.error('Failed to load routes and stations:', error);
+			}
+		};
+		loadRoutesAndStations();
+	}, []);
+	
+	// Load driver locations from localStorage
+	useEffect(() => {
+		const loadDriverLocations = () => {
+			const locations: DriverLocation[] = [];
+			for (let i = 0; i < localStorage.length; i++) {
+				const key = localStorage.key(i);
+				if (key?.startsWith('driver_location_')) {
+					try {
+						const data = JSON.parse(localStorage.getItem(key) || '{}');
+						if (data.isActive && data.latitude && data.longitude) {
+							locations.push(data);
+						}
+					} catch (error) {
+						console.error('Failed to parse driver location:', error);
+					}
+				}
+			}
+			setDriverLocations(locations);
+		};
+		
+		loadDriverLocations();
+		
+		// Refresh driver locations every 5 seconds
+		const interval = setInterval(loadDriverLocations, 5000);
+		return () => clearInterval(interval);
+	}, []);
+	
 	// Fetch real road routes on mount
 	useEffect(() => {
 		const loadRealRoutes = async () => {
+			if (stations.length === 0) return;
+			
 			setIsLoadingRoutes(true);
-			const routes: Record<string, [number, number][]> = {};
+			const routesMap: Record<string, [number, number][]> = {};
 			
-			const routeStations = {
-				"15": rabatStations.filter(s => s.route === "15").map(s => [s.lat, s.lng] as [number, number]),
-				"8": rabatStations.filter(s => s.route === "8").map(s => [s.lat, s.lng] as [number, number]),
-				"22": rabatStations.filter(s => s.route === "22").map(s => [s.lat, s.lng] as [number, number]),
-			};
+			// Get key stations for each route to fetch roads between them
+			const routeStations: Record<string, [number, number][]> = {};
+			stations.forEach(station => {
+				if (!routeStations[station.route]) {
+					routeStations[station.route] = [];
+				}
+				routeStations[station.route].push([station.lat, station.lng]);
+			});
 			
+			// Fetch real routes from API
 			for (const [routeId, coords] of Object.entries(routeStations)) {
 				const realRoute = await fetchRoadRoute(coords);
-				routes[routeId] = realRoute;
+				routesMap[routeId] = realRoute;
 			}
 			
-			setRealRoutes(routes);
+			setRealRoutes(routesMap);
 			setIsLoadingRoutes(false);
 		};
 		
 		loadRealRoutes();
-	}, []);
+	}, [stations]);
 	
-	// Simulate real-time bus movement along actual routes
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setBuses(prevBuses =>
-				prevBuses.map(bus => {
-					const routePath = realRoutes[bus.route] || routeTrajectories[bus.route];
-					if (!routePath || routePath.length === 0) return bus;
-					
-					let closestIndex = 0;
-					let minDistance = Infinity;
-					
-					for (let i = 0; i < routePath.length; i++) {
-						const point = routePath[i];
-						const distance = Math.sqrt(
-							Math.pow(point[0] - bus.location.lat, 2) + 
-							Math.pow(point[1] - bus.location.lng, 2)
-						);
-						if (distance < minDistance) {
-							minDistance = distance;
-							closestIndex = i;
-						}
-					}
-					
-					const nextIndex = (closestIndex + 1) % routePath.length;
-					const nextPoint = routePath[nextIndex];
-					
-					return {
-						...bus,
-						location: {
-							lat: nextPoint[0],
-							lng: nextPoint[1],
-						},
-						speed: Math.max(20, Math.min(60, bus.speed + (Math.random() - 0.5) * 5)),
-					};
-				})
-			);
-		}, 3000);
-		
-		return () => clearInterval(interval);
-	}, [realRoutes]);
-	
-  const routeColors: Record<string, string> = {
-    "15": "#9B392D",
-    "8": "#2563eb",
-    "22": "#16a34a",
+  // Generate colors for routes dynamically
+  const getRouteColor = (routeId: string) => {
+    const colors = ['#9B392D', '#2563eb', '#16a34a', '#f59e0b', '#8b5cf6', '#ec4899'];
+    const hash = routeId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
   };
   
   const filteredStations = selectedRoute 
-    ? rabatStations.filter(s => s.route === selectedRoute)
-    : rabatStations;
+    ? stations.filter(s => s.route === selectedRoute)
+    : stations;
     
-  const filteredBuses = selectedRoute
-    ? buses.filter(b => b.route === selectedRoute)
-    : buses;
+  const filteredDrivers = driverLocations;
   
   const currentUser = {
     id: user?.id || '1',
@@ -355,86 +310,75 @@ export default function TripsPage() {
 						>
 							All Routes
 						</button>
-						<button
-							onClick={() => setSelectedRoute("15")}
-							className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-								selectedRoute === "15"
-									? 'bg-[#9B392D] text-white shadow-lg'
-									: 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-							}`}
-						>
-							L15
-						</button>
-						<button
-							onClick={() => setSelectedRoute("8")}
-							className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-								selectedRoute === "8"
-									? 'bg-blue-600 text-white shadow-lg'
-									: 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-							}`}
-						>
-							L8
-						</button>
-						<button
-							onClick={() => setSelectedRoute("22")}
-							className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
-								selectedRoute === "22"
-									? 'bg-green-600 text-white shadow-lg'
-									: 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-							}`}
-						>
-							L22
-						</button>
+						{routes.map(route => (
+							<button
+								key={route.id}
+								onClick={() => setSelectedRoute(route.id)}
+								className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${
+									selectedRoute === route.id
+										? 'bg-[#9B392D] text-white shadow-lg'
+										: 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+								}`}
+							>
+								{route.number}
+							</button>
+						))}
 					</div>
 				</div>
 				
-				{/* Compact Bus List */}
+				{/* Compact Driver List */}
 				<div className="bg-white rounded-lg shadow-md border border-gray-200 p-4">
 					<h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
 						<Bus className="w-4 h-4 text-[#9B392D]" />
-						Live Buses
+						Active Drivers ({filteredDrivers.length})
 					</h4>
-					<div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-						{filteredBuses.map((bus) => (
-							<div
-								key={bus.id}
-								className="relative p-3 bg-gradient-to-br from-gray-50 to-white rounded-lg hover:shadow-md transition-all border border-gray-200 overflow-hidden"
-							>
-								<div 
-									className="absolute top-0 left-0 w-full h-1"
-									style={{ backgroundColor: routeColors[bus.route] }}
-								></div>
-								
-								<div className="flex items-start gap-3">
-									<div
-										className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold shadow-sm flex-shrink-0"
-										style={{ background: `linear-gradient(135deg, ${routeColors[bus.route]}, ${routeColors[bus.route]}dd)` }}
-									>
-										<Bus className="w-5 h-5" />
-									</div>
-									<div className="flex-1 min-w-0">
-										<div className="flex items-center gap-2 mb-1">
-											<p className="font-bold text-sm text-gray-900 truncate">{bus.number}</p>
-											<div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse flex-shrink-0"></div>
+					{filteredDrivers.length === 0 ? (
+						<div className="text-center py-8 text-gray-500">
+							<Bus className="w-12 h-12 mx-auto mb-2 opacity-50" />
+							<p>No active drivers at the moment</p>
+						</div>
+					) : (
+						<div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+							{filteredDrivers.map((driver) => (
+								<div
+									key={driver.driverId}
+									className="relative p-3 bg-gradient-to-br from-gray-50 to-white rounded-lg hover:shadow-md transition-all border border-gray-200 overflow-hidden"
+								>
+									<div 
+										className="absolute top-0 left-0 w-full h-1 bg-green-500"
+									></div>
+									
+									<div className="flex items-start gap-3">
+										<div
+											className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold shadow-sm flex-shrink-0 bg-gradient-to-br from-green-600 to-green-700"
+										>
+											<Bus className="w-5 h-5" />
 										</div>
-										<p className="text-xs text-gray-600 font-medium truncate mb-1">{bus.routeName}</p>
-										<div className="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100">
-											<div className="flex items-center gap-1">
-												<span className="text-xs font-bold" style={{ color: routeColors[bus.route] }}>
-													{Math.round(bus.speed)}
-												</span>
-												<span className="text-xs text-gray-500">km/h</span>
+										<div className="flex-1 min-w-0">
+											<div className="flex items-center gap-2 mb-1">
+												<p className="font-bold text-sm text-gray-900 truncate">{driver.driverName}</p>
+												<div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse flex-shrink-0"></div>
 											</div>
-											<div className="flex items-center gap-1">
-												<span className="text-xs font-bold text-blue-600">{bus.passengers}</span>
-												<span className="text-xs text-gray-500">/50</span>
+											{driver.busNumber && (
+												<p className="text-xs text-gray-600 font-medium truncate mb-1">🚌 Bus: {driver.busNumber}</p>
+											)}
+											<div className="flex items-center gap-3 mt-2 pt-2 border-t border-gray-100">
+												<div className="flex items-center gap-1">
+													<span className="text-xs font-bold text-green-600">
+														{Math.round(driver.speed)}
+													</span>
+													<span className="text-xs text-gray-500">km/h</span>
+												</div>
+												<div className="text-xs text-gray-500">
+													{new Date(driver.timestamp).toLocaleTimeString()}
+												</div>
 											</div>
 										</div>
 									</div>
 								</div>
-							</div>
-						))}
-					</div>
+							))}
+						</div>
+					)}
 				</div>
 
 				{/* Interactive Map */}
@@ -460,7 +404,7 @@ export default function TripsPage() {
 							/>
 							
 							{/* Route Trajectories */}
-							{Object.entries(isLoadingRoutes ? routeTrajectories : realRoutes).map(([routeId, path]) => {
+							{!isLoadingRoutes && Object.entries(realRoutes).map(([routeId, path]) => {
 								if (selectedRoute && selectedRoute !== routeId) return null;
 								if (!path || path.length === 0) return null;
 								return (
@@ -468,7 +412,7 @@ export default function TripsPage() {
 										key={routeId}
 										positions={path as [number, number][]}
 										pathOptions={{
-											color: routeColors[routeId],
+											color: getRouteColor(routeId),
 											weight: 6,
 											opacity: 0.8,
 											lineCap: 'round',
@@ -483,42 +427,46 @@ export default function TripsPage() {
 								<CircleMarker
 									key={station.id}
 									center={[station.lat, station.lng]}
-									radius={10}
+									radius={8}
 									pathOptions={{
-										fillColor: routeColors[station.route],
+										fillColor: getRouteColor(station.route),
 										fillOpacity: 1,
 										color: 'white',
-										weight: 4,
+										weight: 3,
 									}}
 								>
 									<Tooltip permanent={false} direction="top" offset={[0, -10]}>
 										<div className="text-center">
 											<div className="font-bold text-sm">{station.name}</div>
-											<div className="text-xs text-gray-600">Line {station.route}</div>
+											<div className="text-xs text-gray-600">{station.code}</div>
 										</div>
 									</Tooltip>
 								</CircleMarker>
 							))}
 							
-							{/* Buses */}
-							{filteredBuses.map((bus) => (
+							{/* Active Drivers */}
+							{filteredDrivers.map((driver) => (
 								<Marker
-									key={bus.id}
-									position={[bus.location.lat, bus.location.lng]}
-									icon={createBusIcon(routeColors[bus.route])}
+									key={driver.driverId}
+									position={[driver.latitude, driver.longitude]}
+									icon={createBusIcon(getRouteColor(driver.driverId))}
 								>
 									<Popup>
 										<div className="p-2">
-											<div className="font-bold text-lg mb-2" style={{ color: routeColors[bus.route] }}>
-												{bus.number}
+											<div className="font-bold text-lg mb-2 text-green-600">
+												{driver.driverName}
 											</div>
 											<div className="space-y-1 text-sm">
-												<div><span className="font-semibold">Line:</span> {bus.routeName}</div>
-												<div><span className="font-semibold">Speed:</span> {Math.round(bus.speed)} km/h</div>
-												<div><span className="font-semibold">Passengers:</span> {bus.passengers}/50</div>
+												<div><span className="font-semibold">Email:</span> {driver.driverEmail}</div>
+												{driver.busNumber && (
+													<div><span className="font-semibold">Bus:</span> {driver.busNumber}</div>
+												)}
+												<div><span className="font-semibold">Speed:</span> {Math.round(driver.speed)} km/h</div>
+												<div><span className="font-semibold">Position:</span> {driver.latitude.toFixed(6)}, {driver.longitude.toFixed(6)}</div>
+												<div><span className="font-semibold">Last Update:</span> {new Date(driver.timestamp).toLocaleString()}</div>
 												<div className="flex items-center gap-2 mt-2">
 													<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-													<span className="text-green-600 font-semibold">In Service</span>
+													<span className="text-green-600 font-semibold">Active</span>
 												</div>
 											</div>
 										</div>

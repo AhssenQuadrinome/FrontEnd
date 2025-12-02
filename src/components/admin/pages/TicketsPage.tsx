@@ -146,7 +146,7 @@ export default function TicketsPage() {
         <h3 className="text-2xl font-bold text-gray-900">Tickets & Subscriptions</h3>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Card 1: Tickets Sold */}
           <div className="relative group transition-transform duration-200 hover:-translate-y-1 hover:scale-105">
             <div className="rounded-2xl shadow-lg p-6 overflow-hidden hover:shadow-2xl transition-all duration-300 bg-white/30 backdrop-blur-md border border-[#A54033]/40">
@@ -206,29 +206,6 @@ export default function TicketsPage() {
                   {revenueToday.revenue.toFixed(0)} MAD
                 </p>
                 <p className="text-sm text-[#D4604F] font-medium">Revenue Today</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Card 4: Fraud Alerts */}
-          <div className="relative group transition-transform duration-200 hover:-translate-y-1 hover:scale-105">
-            <div className="rounded-2xl shadow-lg p-6 overflow-hidden hover:shadow-2xl transition-all duration-300 bg-white/30 backdrop-blur-md border border-[#A54033]/40">
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-[#A54033]/90 via-[#A54033]/60 to-[#A54033]/40 animate-[shimmer_2.5s_linear_infinite]" style={{maskImage:'linear-gradient(120deg,transparent 0%,#fff3 50%,transparent 100%)'}} />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="relative">
-                    <div className="w-14 h-14 bg-gradient-to-br from-[#A54033] to-[#8B2F24] rounded-2xl flex items-center justify-center shadow-lg" style={{boxShadow:'0 0 24px 0 #A5403355'}}>
-                      <AlertTriangle className="w-7 h-7 text-white" />
-                    </div>
-                  </div>
-                  {/* <div className="flex items-center gap-1 px-3 py-1 bg-[#A54033]/10 rounded-full text-[#A54033] text-sm font-semibold">
-                    <span className="text-xs">N/A</span>
-                  </div> */}
-                </div>
-                <p className="text-4xl font-bold bg-gradient-to-r from-[#A54033] to-[#8B2F24] bg-clip-text text-transparent mb-1">
-                  0
-                </p>
-                <p className="text-sm text-[#A54033] font-medium">Fraud Alerts</p>
               </div>
             </div>
           </div>
