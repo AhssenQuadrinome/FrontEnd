@@ -6,15 +6,12 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import DashboardLayout from '../../DashboardLayout';
-import { User, UserRole, Incident } from '../../../types';
+import { User, UserRole } from '../../../types';
 import { useEffect, useState } from 'react';
 import authService from '../../../services/authService';
 import routeService, { Route } from '../../../services/routeService';
 import adminStatsService from '../../../services/adminStatsService';
-
-const mockIncidents: Incident[] = [
-  // Incidents service not yet implemented - keeping as 0 for now
-];
+import incidentService, { IncidentResponse } from '../../../services/incidentService';
 
 export default function OverviewPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -25,6 +22,8 @@ export default function OverviewPage() {
   const [ticketsSoldToday, setTicketsSoldToday] = useState<number>(0);
   const [revenueToday, setRevenueToday] = useState<number>(0);
   const [routes, setRoutes] = useState<Route[]>([]);
+  const [recentIncidents, setRecentIncidents] = useState<IncidentResponse[]>([]);
+  const [openIncidentsCount, setOpenIncidentsCount] = useState<number>(0);
 
   useEffect(() => {
     fetchData();
@@ -35,12 +34,13 @@ export default function OverviewPage() {
       setLoading(true);
       
       // Fetch all data in parallel
-      const [profile, usersData, routesData, statsData, revenueData] = await Promise.all([
+      const [profile, usersData, routesData, statsData, revenueData, incidentsData] = await Promise.all([
         authService.getProfile(),
         authService.getAllUsers(0, 1000), // Get all users
         routeService.getAllRoutes(0, 100), // Get all routes
         adminStatsService.getTicketsSoldToday(),
         adminStatsService.getRevenueToday(), // Get revenue today
+        incidentService.getAllIncidents(0, 3), // Get last 5 incidents
       ]);
 
       // Transform UserProfile to User
@@ -62,6 +62,13 @@ export default function OverviewPage() {
       
       // Get first 3 active routes for display
       setRoutes(routesData.content.filter(r => r.active).slice(0, 3));
+      
+      // Set recent incidents
+      setRecentIncidents(incidentsData.content);
+      
+      // Count open incidents
+      const openCount = incidentsData.content.filter(inc => inc.status === 'OPEN').length;
+      setOpenIncidentsCount(openCount);
       
     } catch (error) {
       console.error('Failed to fetch overview data:', error);
@@ -198,38 +205,47 @@ export default function OverviewPage() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-bold text-gray-900">Recent Incidents</h4>
-              <span className="px-3 py-1 bg-[#181E4B]/10 text-[#181E4B] rounded-full text-xs font-semibold">
-                0 Open
+              <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs font-semibold">
+                {openIncidentsCount} Open
               </span>
             </div>
             <div className="space-y-3">
-              {mockIncidents.length === 0 ? (
+              {recentIncidents.length === 0 ? (
                 <div className="text-center py-8">
                   <AlertTriangle className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                   <p className="text-gray-500 text-sm">No incidents reported</p>
-                  <p className="text-gray-400 text-xs mt-1">Incident service not yet implemented</p>
+                  <p className="text-gray-400 text-xs mt-1">All clear for now</p>
                 </div>
               ) : (
-                mockIncidents.map((incident) => (
+                recentIncidents.map((incident) => (
                   <div key={incident.id} className={`p-4 rounded-lg border ${
-                    incident.status === 'open' ? 'bg-[#181E4B]/5 border-[#181E4B]/30' : 'bg-gray-50 border-gray-200'
+                    incident.status === 'OPEN' ? 'bg-red-50 border-red-200' : 
+                    incident.status === 'IN_PROGRESS' ? 'bg-yellow-50 border-yellow-200' : 
+                    'bg-green-50 border-green-200'
                   }`}>
                     <div className="flex items-start gap-3">
                       <AlertTriangle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                        incident.severity === 'high' ? 'text-red-600' :
-                        incident.severity === 'medium' ? 'text-yellow-600' : 'text-blue-600'
+                        incident.type === 'INCIDENT' ? 'text-red-600' :
+                        incident.type === 'DELAY' ? 'text-yellow-600' : 'text-orange-600'
                       }`} />
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <p className="font-semibold text-gray-900 capitalize">{incident.type}</p>
-                          <span className={`text-xs font-medium ${
-                            incident.status === 'open' ? 'text-red-600' : 'text-[#181E4B]'
+                          <p className="font-semibold text-gray-900">
+                            {incident.type === 'INCIDENT' ? 'Incident' : 
+                             incident.type === 'DELAY' ? 'Delay' : 'Cancellation'}
+                          </p>
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                            incident.status === 'OPEN' ? 'bg-red-100 text-red-700' : 
+                            incident.status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-700' : 
+                            'bg-green-100 text-green-700'
                           }`}>
-                            {incident.status.toUpperCase()}
+                            {incident.status === 'IN_PROGRESS' ? 'In Progress' : incident.status}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600 mb-1">{incident.description}</p>
-                        <p className="text-xs text-gray-500">{incident.routeName} • {incident.reportedBy}</p>
+                        <p className="text-sm text-gray-600 mb-1 line-clamp-2">{incident.description}</p>
+                        <p className="text-xs text-gray-500">
+                          Route {incident.routeId} • {new Date(incident.reportedAt).toLocaleString()}
+                        </p>
                       </div>
                     </div>
                   </div>
