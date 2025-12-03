@@ -131,7 +131,7 @@ const Ticket = ({
                     {trainType}
                   </Badge> */}
                   <p className="text-xs font-semibold text-navy mt-1 uppercase">
-                    {departureStation}
+                    {departure}
                   </p>
                 </div>
               </div>
@@ -142,7 +142,7 @@ const Ticket = ({
                     {trainType}
                   </Badge> */}
                   <p className="text-xs font-semibold text-navy mt-1 uppercase">
-                    {arrivalStation}
+                    {arrival}
                   </p>
                 </div>
               </div>
