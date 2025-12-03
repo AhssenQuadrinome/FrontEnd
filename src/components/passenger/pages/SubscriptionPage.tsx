@@ -11,7 +11,7 @@ export default function SubscriptionPage() {
   const [searchParams] = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [showQR, setShowQR] = useState<string | null>(null);
+  const [showQR, setShowQR] = useState<{ id: string; section: 'active' | 'history' } | null>(null);
   const [activeSubscription, setActiveSubscription] = useState<SubscriptionGetResource | null>(null);
   const [subscriptionHistory, setSubscriptionHistory] = useState<SubscriptionGetResource[]>([]);
   const [purchasing, setPurchasing] = useState(false);
@@ -43,8 +43,12 @@ export default function SubscriptionPage() {
     fetchData();
   }, [searchParams]);
 
-  const toggleQR = (id: string) => {
-    setShowQR(showQR === id ? null : id);
+  const toggleQR = (id: string, section: 'active' | 'history') => {
+    if (showQR?.id === id && showQR?.section === section) {
+      setShowQR(null);
+    } else {
+      setShowQR({ id, section });
+    }
   };
 
   const handlePurchaseSubscription = async () => {
@@ -183,16 +187,16 @@ export default function SubscriptionPage() {
                 </div>
 
                 <button
-                  onClick={() => toggleQR(activeSubscription.id)}
+                  onClick={() => toggleQR(activeSubscription.id, 'active')}
                   className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   <div className="bg-white bg-opacity-20 p-1.5 rounded-lg">
                     <Scan className="w-5 h-5" />
                   </div>
-                  {showQR === activeSubscription.id ? 'Hide QR Code' : 'Show QR Code'}
+                  {showQR?.id === activeSubscription.id && showQR?.section === 'active' ? 'Hide QR Code' : 'Show QR Code'}
                 </button>
 
-                {showQR === activeSubscription.id && (
+                {showQR?.id === activeSubscription.id && showQR?.section === 'active' && (
                   <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-xl text-center border-2 border-amber-200 shadow-inner">
                     <div className="inline-block bg-white p-4 rounded-xl shadow-lg">
                       <QRCodeSVG 
@@ -308,15 +312,15 @@ export default function SubscriptionPage() {
                       <p className="text-xs text-gray-500 font-mono bg-gray-50 inline-block px-2 py-1 rounded">ID: {sub.id}</p>
                     </div>
                     <button
-                      onClick={() => toggleQR(sub.id)}
+                      onClick={() => toggleQR(sub.id, 'history')}
                       className="ml-4 bg-gradient-to-r from-amber-100 to-amber-200 hover:from-amber-200 hover:to-amber-300 text-amber-900 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm hover:shadow-md border border-amber-300"
                     >
                       <Scan className="w-4 h-4" />
-                      {showQR === sub.id ? 'Hide' : 'View QR'}
+                      {showQR?.id === sub.id && showQR?.section === 'history' ? 'Hide' : 'View QR'}
                     </button>
                   </div>
                   
-                  {showQR === sub.id && (
+                  {showQR?.id === sub.id && showQR?.section === 'history' && (
                     <div className="mt-4 pt-4 border-t-2 border-amber-100">
                       <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200">
                         <div className="flex justify-center mb-3">
