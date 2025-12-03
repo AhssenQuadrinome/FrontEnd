@@ -19,23 +19,29 @@ export default function TicketsPage() {
   const [qrCodeData, setQrCodeData] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [hasFetched, setHasFetched] = useState(false);
 
   useEffect(() => {
+    // Prevent multiple fetches during same session
+    if (hasFetched) return;
+    
     const shouldRefresh = searchParams.get('refresh') === 'true';
     
     if (shouldRefresh) {
       console.log('[TicketsPage] Refresh requested from payment success - waiting for webhook processing...');
+      // Remove the refresh parameter from URL immediately
+      navigate('/passenger/tickets', { replace: true });
       // Wait 2 seconds for webhook to process and create ticket
       setTimeout(() => {
         fetchData();
-        // Remove the refresh parameter from URL
-        navigate('/passenger/tickets', { replace: true });
+        setHasFetched(true);
       }, 2000);
     } else {
       // Normal load without delay
       fetchData();
+      setHasFetched(true);
     }
-  }, [searchParams]);
+  }, []); // Empty dependency array - only run once on mount
 
   const fetchData = async () => {
     try {
