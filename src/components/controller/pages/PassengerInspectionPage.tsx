@@ -11,6 +11,7 @@ import DashboardLayout from '../../DashboardLayout';
 import { User } from '../../../types';
 import authService from '../../../services/authService';
 import ticketService from '../../../services/ticketService';
+import subscriptionService from '../../../services/subscriptionService';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { toast } from 'sonner';
@@ -31,6 +32,7 @@ export default function PassengerInspectionPage() {
   const [ticketId, setTicketId] = useState('');
   const [tripId, setTripId] = useState('');
   const [tripIdLocked, setTripIdLocked] = useState(false);
+  const [inspectionMode, setInspectionMode] = useState<'ticket' | 'subscription'>('ticket');
   const [ticketQrImage, setTicketQrImage] = useState<File | null>(null);
   const [tripQrImage, setTripQrImage] = useState<File | null>(null);
   const [inspecting, setInspecting] = useState(false);
@@ -210,7 +212,7 @@ export default function PassengerInspectionPage() {
 
   const handleInspect = async () => {
     if (!ticketId.trim()) {
-      toast.error('Please enter a ticket ID');
+      toast.error(inspectionMode === 'ticket' ? 'Please enter a ticket ID' : 'Please enter a subscription ID');
       return;
     }
 
@@ -221,35 +223,54 @@ export default function PassengerInspectionPage() {
 
     try {
       setInspecting(true);
-      const result = await ticketService.inspect(ticketId, tripId);
-      
-      setInspectionHistory(prev => [{
-        ticketId,
-        tripId,
-        valid: result.valid,
-        message: result.message,
-        timestamp: new Date(),
-      }, ...prev]);
 
-      if (result.valid) {
-        toast.success('Ticket inspection successful!', {
-          description: result.message,
-        });
+      if (inspectionMode === 'ticket') {
+        const result = await ticketService.inspect(ticketId, tripId);
+
+        setInspectionHistory(prev => [{
+          ticketId,
+          tripId,
+          valid: result.valid,
+          message: result.message,
+          timestamp: new Date(),
+        }, ...prev]);
+
+        if (result.valid) {
+          toast.success('Ticket inspection successful!', { description: result.message });
+        } else {
+          toast.error('Invalid ticket', { description: result.message });
+        }
+
+        setTicketId('');
+        setTicketQrImage(null);
       } else {
-        toast.error('Invalid ticket', {
-          description: result.message,
-        });
-      }
+        // Subscription mode: treat provided ID as subscriptionId (scanned from subscription QR)
+        const subscriptionId = ticketId.trim();
 
-      // Reset only ticket fields, keep trip ID locked
-      setTicketId('');
-      setTicketQrImage(null);
+        const result = await subscriptionService.inspect(subscriptionId, tripId);
+
+        setInspectionHistory(prev => [{
+          ticketId: subscriptionId,
+          tripId,
+          valid: result.valid,
+          message: result.message,
+          timestamp: new Date(),
+        }, ...prev]);
+
+        if (result.valid) {
+          toast.success('Subscription valid for this trip', { description: result.message });
+        } else {
+          toast.error('Subscription invalid', { description: result.message });
+        }
+
+        // reset subscription input
+        setTicketId('');
+        setTicketQrImage(null);
+      }
     } catch (err: any) {
-      console.error('Failed to inspect ticket:', err);
-      toast.error('Inspection failed', {
-        description: err.response?.data?.message || 'Please try again',
-      });
-      
+      console.error('Failed to inspect:', err);
+      toast.error('Inspection failed', { description: err.response?.data?.message || 'Please try again' });
+
       setInspectionHistory(prev => [{
         ticketId,
         tripId,
@@ -269,6 +290,22 @@ export default function PassengerInspectionPage() {
     <DashboardLayout user={currentUser || { id: "", name: "Controller", email: "", role: "controller" }} notificationCount={1}>
       <div className="space-y-6">
         <h3 className="text-2xl font-bold text-[#181E4B]">Passenger Inspection</h3>
+
+        {/* Mode Toggle: Ticket vs Subscription Inspection */}
+        <div className="flex items-center justify-center my-4">
+          <div className="inline-flex rounded-2xl bg-gray-100 p-1">
+            <button
+              onClick={() => setInspectionMode('ticket')}
+              className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all ${inspectionMode === 'ticket' ? 'bg-white shadow' : 'text-gray-600'}`}>
+              Ticket
+            </button>
+            <button
+              onClick={() => setInspectionMode('subscription')}
+              className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all ${inspectionMode === 'subscription' ? 'bg-white shadow' : 'text-gray-600'}`}>
+              Subscription
+            </button>
+          </div>
+        </div>
 
         {/* Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -405,8 +442,8 @@ export default function PassengerInspectionPage() {
               <div className="space-y-4 mb-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ticket QR Code
-                  </label>
+                      {inspectionMode === 'ticket' ? 'Ticket QR Code' : 'Subscription QR Code'}
+                    </label>
                   <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
                     ticketQrImage 
                       ? 'border-green-500 bg-green-50' 
@@ -422,7 +459,7 @@ export default function PassengerInspectionPage() {
                       ) : (
                         <>
                           <Upload className="w-10 h-10 text-[#9B392D] mb-2" />
-                          <p className="text-sm text-gray-600 font-medium">Upload Ticket QR</p>
+                          <p className="text-sm text-gray-600 font-medium">{inspectionMode === 'ticket' ? 'Upload Ticket QR' : 'Upload Subscription QR'}</p>
                           <p className="text-xs text-gray-500 mt-1">PNG, JPG or JPEG</p>
                         </>
                       )}
@@ -446,12 +483,12 @@ export default function PassengerInspectionPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Enter Ticket ID
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {inspectionMode === 'ticket' ? 'Enter Ticket ID' : 'Enter Subscription ID'}
                   </label>
                   <Input
                     type="text"
-                    placeholder="Ticket ID..."
+                    placeholder={inspectionMode === 'ticket' ? 'Ticket ID...' : 'Subscription ID...'}
                     value={ticketId}
                     onChange={(e) => setTicketId(e.target.value)}
                     className="text-center text-lg font-mono"
@@ -472,7 +509,7 @@ export default function PassengerInspectionPage() {
                 ) : (
                   <>
                     <Search className="w-5 h-5 mr-2" />
-                    Validate Ticket
+                    {inspectionMode === 'ticket' ? 'Validate Ticket' : 'Validate Subscription'}
                   </>
                 )}
               </Button>
