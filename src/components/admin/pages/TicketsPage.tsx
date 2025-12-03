@@ -18,6 +18,7 @@ export default function TicketsPage() {
   
   // Stats state
   const [ticketsSold, setTicketsSold] = useState({ count: 0, growth: 0 });
+  const [activeSubscriptions, setActiveSubscriptions] = useState(0);
   const [revenueToday, setRevenueToday] = useState({ revenue: 0, growth: 0 });
   const [totalTransactions, setTotalTransactions] = useState({ total: 0, avgDaily: 0 });
   const [revenueByType, setRevenueByType] = useState<any>(null);
@@ -37,19 +38,67 @@ export default function TicketsPage() {
         role: profile.role.toLowerCase() as UserRole,
       });
 
-      // Fetch all stats in parallel
-      const [ticketsData, revenueData, transactionsData, revenueTypeData] = await Promise.all([
+      // Fetch all stats in parallel from both ticket and subscription services
+      const [
+        ticketsData, 
+        subscriptionsData, 
+        ticketRevenueData, 
+        subscriptionRevenueData,
+        transactionsData, 
+        ticketRevenueTypeData,
+        totalSubscriptionData
+      ] = await Promise.all([
         adminStatsService.getTicketsSoldToday(),
-        adminStatsService.getRevenueToday(),
+        adminStatsService.getActiveSubscriptionsCount(),
+        adminStatsService.getRevenueToday(), // Ticket revenue today
+        adminStatsService.getSubscriptionRevenueToday(), // Subscription revenue today
         adminStatsService.getTotalTransactions(),
-        adminStatsService.getRevenueByType(),
+        adminStatsService.getRevenueByType(), // Ticket revenue breakdown
+        adminStatsService.getTotalSubscriptionRevenue(), // Total subscription revenue
       ]);
 
       setTicketsSold({ count: ticketsData.count, growth: ticketsData.growthPercentage });
-      setRevenueToday({ revenue: revenueData.revenue, growth: revenueData.growthPercentage });
-      setTotalTransactions({ total: transactionsData.totalTransactions, avgDaily: transactionsData.avgDailyRevenue });
-      console.log(revenueTypeData)
-      setRevenueByType(revenueTypeData);
+      setActiveSubscriptions(subscriptionsData.count);
+      
+      // Combine revenue from tickets and subscriptions
+      const combinedRevenueToday = ticketRevenueData.revenue + subscriptionRevenueData.revenue;
+      // Use ticket growth as primary indicator (can be enhanced later)
+      setRevenueToday({ revenue: combinedRevenueToday, growth: ticketRevenueData.growthPercentage });
+      
+      // Combine transaction count (tickets + subscriptions)
+      const combinedTransactions = transactionsData.totalTransactions + totalSubscriptionData.totalCount;
+      const combinedAvgDaily = transactionsData.avgDailyRevenue + subscriptionRevenueData.revenue;
+      setTotalTransactions({ total: combinedTransactions, avgDaily: combinedAvgDaily });
+      
+      // Combine revenue by type
+      const totalRevenueCombined = ticketRevenueTypeData.totalRevenue + totalSubscriptionData.totalRevenue;
+      const subscriptionRevenue = totalSubscriptionData.totalRevenue;
+      
+      // Calculate percentages
+      const ticketPercentage = totalRevenueCombined > 0 
+        ? (ticketRevenueTypeData.totalRevenue / totalRevenueCombined) * 100 
+        : 0;
+      const subscriptionPercentage = totalRevenueCombined > 0 
+        ? (subscriptionRevenue / totalRevenueCombined) * 100 
+        : 0;
+      
+      const combinedRevenueByType = {
+        singleTickets: {
+          revenue: ticketRevenueTypeData.totalRevenue,
+          percentage: ticketPercentage,
+          label: "Single Tickets"
+        },
+        monthlySubscriptions: {
+          revenue: subscriptionRevenue,
+          percentage: subscriptionPercentage,
+          label: "Subscriptions"
+        },
+        totalRevenue: totalRevenueCombined,
+        timestamp: new Date().toISOString()
+      };
+      
+      console.log('[AdminTicketsPage] Combined revenue:', combinedRevenueByType);
+      setRevenueByType(combinedRevenueByType);
 
       console.log('[AdminTicketsPage] Stats loaded successfully');
     } catch (err) {
@@ -183,7 +232,7 @@ export default function TicketsPage() {
                   </div> */}
                 </div>
                 <p className="text-4xl font-bold bg-gradient-to-r from-[#8B2F24] to-[#6B1F1A] bg-clip-text text-transparent mb-1">
-                  0
+                  {activeSubscriptions.toLocaleString()}
                 </p>
                 <p className="text-sm text-[#8B2F24] font-medium">Active Subscriptions</p>
               </div>

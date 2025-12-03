@@ -53,6 +53,27 @@ class AdminStatsService {
     const response = await api.get('/ticketMgtApi/admin/stats/revenue-by-type');
     return response.data;
   }
+
+  async getActiveSubscriptionsCount(): Promise<{ count: number; status: string }> {
+    const response = await api.get('/subscriptionMgtApi/subscription/stats/active-count');
+    return response.data;
+  }
+
+  async getSubscriptionRevenueToday(): Promise<{ revenue: number; currency: string; count: number }> {
+    const response = await api.get('/subscriptionMgtApi/subscription/stats/revenue-today');
+    return response.data;
+  }
+
+  async getTotalSubscriptionRevenue(): Promise<{ 
+    totalRevenue: number; 
+    currency: string; 
+    totalCount: number;
+    revenueByPlan: Record<string, number>;
+    countByPlan: Record<string, number>;
+  }> {
+    const response = await api.get('/subscriptionMgtApi/subscription/stats/total-revenue');
+    return response.data;
+  }
 }
 
 export default new AdminStatsService();
