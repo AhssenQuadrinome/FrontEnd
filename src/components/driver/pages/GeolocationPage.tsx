@@ -25,6 +25,8 @@ export default function GeolocationPage() {
   const [speed, setSpeed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [watchId, setWatchId] = useState<number | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [, setUpdateTrigger] = useState(0);
 
   // Fetch current user
   useEffect(() => {
@@ -38,12 +40,30 @@ export default function GeolocationPage() {
             'CONTROLLER': 'controller',
             'PASSENGER': 'passenger'
           };
-          setCurrentUser({
+          const userProfile = {
             id: profile.id,
             name: `${profile.firstName} ${profile.lastName}`,
             email: profile.email,
             role: roleMap[profile.role] || profile.role.toLowerCase() as "admin" | "driver" | "controller" | "passenger"
-          });
+          };
+          setCurrentUser(userProfile);
+
+          // Check if location sharing was previously enabled and auto-restart
+          const savedLocation = localStorage.getItem(`driver_location_${profile.id}`);
+          if (savedLocation) {
+            try {
+              const parsed: DriverLocation = JSON.parse(savedLocation);
+              if (parsed.isActive) {
+                setBusNumber(parsed.busNumber || '');
+                // Auto-restart location tracking
+                setTimeout(() => {
+                  startLocationSharingInternal(parsed.busNumber || '');
+                }, 500);
+              }
+            } catch (e) {
+              console.error('Error parsing saved location:', e);
+            }
+          }
         })
         .catch(() => {
           setCurrentUser({
@@ -54,39 +74,27 @@ export default function GeolocationPage() {
           });
         });
     }
-
-    // Check if location sharing was previously enabled
-    const savedLocation = localStorage.getItem(`driver_location_${user?.id}`);
-    if (savedLocation) {
-      try {
-        const parsed: DriverLocation = JSON.parse(savedLocation);
-        if (parsed.isActive) {
-          setSharingLocation(true);
-          setBusNumber(parsed.busNumber || '');
-        }
-      } catch (e) {
-        console.error('Error parsing saved location:', e);
-      }
-    }
   }, []);
 
-  // Start watching location
-  const startLocationSharing = () => {
+  // Internal function to start location sharing (can be called with or without bus number)
+  const startLocationSharingInternal = (busNum: string, showToast = true) => {
     if (!navigator.geolocation) {
       setError('Geolocation is not supported by your browser');
-      toast.error('Geolocation not supported');
+      if (showToast) toast.error('Geolocation not supported');
       return;
     }
 
     setError(null);
-    toast.loading('Activating location sharing...');
+    if (showToast) toast.loading('Activating location sharing...');
 
     const id = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude, speed: gpsSpeed } = position.coords;
+        const now = new Date();
         
         setCurrentLocation({ lat: latitude, lng: longitude });
         setSpeed(gpsSpeed ? Math.round(gpsSpeed * 3.6) : 0); // Convert m/s to km/h
+        setLastUpdate(now);
 
         // Save to localStorage
         if (currentUser) {
@@ -96,23 +104,27 @@ export default function GeolocationPage() {
             driverEmail: currentUser.email,
             latitude,
             longitude,
-            busNumber: busNumber || undefined,
+            busNumber: busNum || undefined,
             speed: gpsSpeed ? Math.round(gpsSpeed * 3.6) : 0,
-            timestamp: new Date().toISOString(),
+            timestamp: now.toISOString(),
             isActive: true,
           };
 
           localStorage.setItem(`driver_location_${currentUser.id}`, JSON.stringify(locationData));
         }
 
-        toast.dismiss();
-        toast.success('Location sharing activated');
+        if (showToast) {
+          toast.dismiss();
+          toast.success('Location sharing activated');
+        }
       },
       (error) => {
         console.error('Geolocation error:', error);
         setError(error.message);
-        toast.dismiss();
-        toast.error(`Failed to get location: ${error.message}`);
+        if (showToast) {
+          toast.dismiss();
+          toast.error(`Failed to get location: ${error.message}`);
+        }
         setSharingLocation(false);
       },
       {
@@ -124,6 +136,11 @@ export default function GeolocationPage() {
 
     setWatchId(id);
     setSharingLocation(true);
+  };
+
+  // Start watching location (public function for button)
+  const startLocationSharing = () => {
+    startLocationSharingInternal(busNumber, true);
   };
 
   // Stop watching location
@@ -162,6 +179,18 @@ export default function GeolocationPage() {
     }
   };
 
+  // Force re-render every second to update "last update" text
+  useEffect(() => {
+    if (!sharingLocation || !lastUpdate) return;
+
+    const interval = setInterval(() => {
+      // Trigger re-render to update the relative time display
+      setUpdateTrigger(prev => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [sharingLocation, lastUpdate]);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -170,6 +199,19 @@ export default function GeolocationPage() {
       }
     };
   }, [watchId]);
+
+  // Format last update time
+  const getLastUpdateText = () => {
+    if (!lastUpdate) return 'Getting location...';
+    
+    const now = new Date();
+    const diff = Math.floor((now.getTime() - lastUpdate.getTime()) / 1000);
+    
+    if (diff < 5) return 'Just now';
+    if (diff < 60) return `${diff} seconds ago`;
+    if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+    return lastUpdate.toLocaleTimeString();
+  };
 
   return (
     <DashboardLayout user={currentUser || { id: "", name: "Driver", email: "", role: "driver" }} notificationCount={2}>
@@ -259,8 +301,14 @@ export default function GeolocationPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Last Update:</span>
-                    <span className="font-semibold text-navy">Just now</span>
+                    <span className="font-semibold text-navy">{getLastUpdateText()}</span>
                   </div>
+                  {lastUpdate && (
+                    <div className="flex justify-between text-sm pt-3 border-t border-gray-200">
+                      <span className="text-gray-600">Exact Time:</span>
+                      <span className="font-mono text-navy">{lastUpdate.toLocaleTimeString()}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
