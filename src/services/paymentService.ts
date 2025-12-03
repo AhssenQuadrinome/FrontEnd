@@ -5,7 +5,8 @@ const PAYMENT_BASE_URL = '/paymentMgtApi';
 
 // Types
 export interface PaymentProcessRequest {
-  ticketRequestId: string;
+  ticketRequestId?: string;
+  subscriptionRequestId?: string;
 }
 
 export interface PaymentProcessResponse {
@@ -33,13 +34,15 @@ export interface Payment {
 // Payment Service
 const paymentService = {
   /**
-   * Process Payment - Create or retrieve PaymentIntent for a ticket purchase
-   * @param ticketRequestId - The ticket request ID from ticket purchase
+   * Process Payment - Create or retrieve PaymentIntent for a ticket or subscription purchase
+   * @param ticketRequestId - The ticket request ID from ticket purchase (optional)
+   * @param subscriptionRequestId - The subscription request ID from subscription purchase (optional)
    * @returns Payment process response with clientSecret for Stripe confirmation
    */
-  async processPayment(ticketRequestId: string): Promise<PaymentProcessResponse> {
+  async processPayment(ticketRequestId?: string, subscriptionRequestId?: string): Promise<PaymentProcessResponse> {
     const response = await api.post(`${PAYMENT_BASE_URL}/payments/process`, {
       ticketRequestId,
+      subscriptionRequestId,
     });
     return response.data;
   },

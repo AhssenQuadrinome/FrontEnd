@@ -26,6 +26,7 @@ import PassengerProfilePage from "./components/passenger/pages/ProfilePage";
 import PassengerNotificationsPage from "./components/passenger/pages/NotificationsPage";
 import PassengerBuyTicketPage from "./components/passenger/pages/BuyTicketPage";
 import PassengerPaymentPage from "./components/passenger/pages/PaymentPage";
+import SubscriptionPaymentPage from "./components/passenger/pages/SubscriptionPaymentPage";
 
 import DriverMyTripsPage from "./components/driver/pages/MyTripsPage";
 import DriverValidateTicketsPage from "./components/driver/pages/ValidateTicketsPage";
@@ -70,6 +71,7 @@ createRoot(document.getElementById("app") as HTMLElement).render(
   <Route path="/passenger/notifications" element={<PassengerNotificationsPage />} />
   <Route path="/passenger/buy-ticket" element={<PassengerBuyTicketPage />} />
   <Route path="/passenger/payment" element={<PassengerPaymentPage />} />
+  <Route path="/passenger/subscription-payment" element={<SubscriptionPaymentPage />} />
 
   {/* Driver dashboard split pages */}
   <Route path="/driver/trips" element={<DriverMyTripsPage />} />
