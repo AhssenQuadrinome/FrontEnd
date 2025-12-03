@@ -558,7 +558,7 @@ export default function PassengerInspectionPage() {
                       </span>
                     </div>
                   </div>
-
+{/* 
                   {!inspection.valid && (
                     <div className="mt-3 pt-3 border-t border-red-200">
                       <Button
@@ -570,7 +570,7 @@ export default function PassengerInspectionPage() {
                         Report to Admin
                       </Button>
                     </div>
-                  )}
+                  )} */}
                 </div>
               ))}
             </div>

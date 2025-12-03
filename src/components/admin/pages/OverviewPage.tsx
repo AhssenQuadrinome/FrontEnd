@@ -21,6 +21,7 @@ export default function OverviewPage() {
   const [totalBuses, setTotalBuses] = useState<number>(0);
   const [ticketsSoldToday, setTicketsSoldToday] = useState<number>(0);
   const [revenueToday, setRevenueToday] = useState<number>(0);
+  const [subscriptionRevenueToday, setSubscriptionRevenueToday] = useState<number>(0);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [recentIncidents, setRecentIncidents] = useState<IncidentResponse[]>([]);
   const [openIncidentsCount, setOpenIncidentsCount] = useState<number>(0);
@@ -34,12 +35,13 @@ export default function OverviewPage() {
       setLoading(true);
       
       // Fetch all data in parallel
-      const [profile, usersData, routesData, statsData, revenueData, incidentsData] = await Promise.all([
+      const [profile, usersData, routesData, statsData, ticketRevenueData, subscriptionRevenueData, incidentsData] = await Promise.all([
         authService.getProfile(),
         authService.getAllUsers(0, 1000), // Get all users
         routeService.getAllRoutes(0, 100), // Get all routes
         adminStatsService.getTicketsSoldToday(),
-        adminStatsService.getRevenueToday(), // Get revenue today
+        adminStatsService.getRevenueToday(), // Get ticket revenue today
+        adminStatsService.getSubscriptionRevenueToday(), // Get subscription revenue today
         incidentService.getAllIncidents(0, 3), // Get last 5 incidents
       ]);
 
@@ -58,7 +60,11 @@ export default function OverviewPage() {
       setTotalBuses(busCount);
       
       setTicketsSoldToday(statsData.count);
-      setRevenueToday(revenueData.revenue); // Revenue today
+      
+      // Combine ticket and subscription revenue
+      const combinedRevenue = ticketRevenueData.revenue + subscriptionRevenueData.revenue;
+      setRevenueToday(combinedRevenue);
+      setSubscriptionRevenueToday(subscriptionRevenueData.revenue);
       
       // Get first 3 active routes for display
       setRoutes(routesData.content.filter(r => r.active).slice(0, 3));
