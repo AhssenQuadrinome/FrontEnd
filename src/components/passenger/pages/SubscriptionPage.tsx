@@ -1,10 +1,11 @@
 import DashboardLayout from '../../DashboardLayout';
 import { useState, useEffect } from 'react';
-import { QrCode, Bus, MapPin, ShoppingCart, Calendar, CheckCircle2, Clock } from 'lucide-react';
+import { Bus, MapPin, ShoppingCart, Calendar, CheckCircle2, Clock, Scan } from 'lucide-react';
 import authService from '../../../services/authService';
 import subscriptionService, { SubscriptionGetResource } from '../../../services/subscriptionService';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { QRCodeSVG } from 'qrcode.react';
 export default function SubscriptionPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -111,47 +112,44 @@ export default function SubscriptionPage() {
         {activeSubscription ? (
           <div>
             <h4 className="text-lg font-semibold text-gray-700 mb-4">Active Subscription</h4>
-            <div className="bg-gradient-to-br from-amber-800 to-amber-950 rounded-2xl shadow-2xl overflow-hidden">
-              {/* Card Header */}
-              <div className="p-6 pb-4">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-amber-200">
+              {/* Card Header - White Background */}
+              <div className="bg-white p-6 pb-4 border-b-2 border-amber-100">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-2">
-                    <Bus className="w-6 h-6 text-amber-200" />
-                    <span className="text-white font-bold text-lg">OurBusWay Pass</span>
+                    <div className="bg-amber-100 p-2 rounded-lg">
+                      <Bus className="w-6 h-6 text-amber-800" />
+                    </div>
+                    <span className="text-gray-900 font-bold text-lg">OurBusWay Pass</span>
                   </div>
                   {getStatusBadge(activeSubscription.status)}
                 </div>
 
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="bg-amber-700 p-3 rounded-xl">
-                    <Calendar className="w-8 h-8 text-amber-100" />
+                <div className="flex items-center gap-3">
+                  <div className="bg-amber-100 p-3 rounded-xl">
+                    <Calendar className="w-8 h-8 text-amber-800" />
                   </div>
                   <div>
-                    <p className="text-amber-200 text-xs uppercase tracking-wider">MONTHLY</p>
-                    <p className="text-white text-xl font-bold">{activeSubscription.planName}</p>
+                    <p className="text-amber-700 text-xs uppercase tracking-wider font-semibold">MONTHLY</p>
+                    <p className="text-gray-900 text-xl font-bold">{activeSubscription.planName}</p>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex items-center gap-2 text-amber-100 text-sm">
+              {/* Card Body - White Background */}
+              <div className="p-6 space-y-4">
+                <div className="flex items-center gap-2 text-amber-800 text-sm bg-amber-50 rounded-lg p-3 border border-amber-200">
                   <MapPin className="w-4 h-4" />
-                  <span>All Routes</span>
+                  <span className="font-medium">Valid on All Routes</span>
                 </div>
-              </div>
 
-              {/* Separator */}
-              <div className="px-6">
-                <div className="border-t border-amber-600 border-dashed"></div>
-              </div>
-
-              {/* Card Details */}
-              <div className="p-6 pt-4 space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-amber-900 bg-opacity-50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CheckCircle2 className="w-4 h-4 text-green-400" />
-                      <p className="text-amber-200 text-xs uppercase tracking-wide">Start Date</p>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <p className="text-gray-600 text-xs uppercase tracking-wide font-medium">Start Date</p>
                     </div>
-                    <p className="text-white font-semibold">
+                    <p className="text-gray-900 font-bold">
                       {new Date(activeSubscription.startDate).toLocaleDateString('en-US', { 
                         month: 'short', 
                         day: 'numeric',
@@ -159,12 +157,12 @@ export default function SubscriptionPage() {
                       })}
                     </p>
                   </div>
-                  <div className="bg-amber-900 bg-opacity-50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="w-4 h-4 text-amber-300" />
-                      <p className="text-amber-200 text-xs uppercase tracking-wide">Expires</p>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-amber-600" />
+                      <p className="text-gray-600 text-xs uppercase tracking-wide font-medium">Expires</p>
                     </div>
-                    <p className="text-white font-semibold">
+                    <p className="text-gray-900 font-bold">
                       {new Date(activeSubscription.endDate).toLocaleDateString('en-US', { 
                         month: 'short', 
                         day: 'numeric', 
@@ -174,36 +172,50 @@ export default function SubscriptionPage() {
                   </div>
                 </div>
 
-                <div className="bg-green-500 bg-opacity-20 border border-green-400 rounded-lg p-3 flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-green-400" />
+                <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4 flex items-center gap-3">
+                  <CheckCircle2 className="w-6 h-6 text-green-600" />
                   <div>
-                    <p className="text-green-100 text-sm font-semibold">
+                    <p className="text-green-900 text-sm font-bold">
                       {getDaysRemaining(activeSubscription.endDate)} days remaining
                     </p>
-                    <p className="text-green-200 text-xs">Your subscription is active</p>
+                    <p className="text-green-700 text-xs">Your subscription is active</p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => toggleQR(activeSubscription.id)}
-                  className="w-full bg-white hover:bg-amber-50 text-amber-900 py-3 rounded-lg font-bold transition-all duration-300 flex items-center justify-center gap-2 mt-4"
+                  className="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
-                  <QrCode className="w-5 h-5" />
+                  <div className="bg-white bg-opacity-20 p-1.5 rounded-lg">
+                    <Scan className="w-5 h-5" />
+                  </div>
                   {showQR === activeSubscription.id ? 'Hide QR Code' : 'Show QR Code'}
                 </button>
 
                 {showQR === activeSubscription.id && (
-                  <div className="bg-white p-6 rounded-lg text-center mt-3 animate-in fade-in duration-300">
-                    <div className="inline-block">
-                      <div className="w-48 h-48 bg-gradient-to-br from-amber-100 to-amber-200 rounded-lg flex items-center justify-center">
-                        <QrCode className="w-36 h-36 text-amber-800" />
-                      </div>
+                  <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-6 rounded-xl text-center border-2 border-amber-200 shadow-inner">
+                    <div className="inline-block bg-white p-4 rounded-xl shadow-lg">
+                      <QRCodeSVG 
+                        value={activeSubscription.id}
+                        size={200}
+                        level="H"
+                        includeMargin={true}
+                        fgColor="#78350f"
+                        bgColor="#ffffff"
+                      />
                     </div>
-                    <p className="text-amber-900 text-sm font-semibold mt-3">Scan to validate</p>
-                    <p className="text-gray-600 text-sm mt-1 font-mono font-bold">ID: {activeSubscription.id}</p>
-                    <p className="text-gray-500 text-xs mt-2">
-                      Valid until {new Date(activeSubscription.endDate).toLocaleDateString()}
-                    </p>
+                    <div className="mt-4 space-y-2">
+                      <div className="flex items-center justify-center gap-2">
+                        <Scan className="w-5 h-5 text-amber-800" />
+                        <p className="text-amber-900 text-sm font-bold">Scan to validate subscription</p>
+                      </div>
+                      <p className="text-gray-700 text-xs font-mono bg-white inline-block px-3 py-1 rounded-lg border border-amber-200">
+                        ID: {activeSubscription.id}
+                      </p>
+                      <p className="text-gray-600 text-xs">
+                        Valid until {new Date(activeSubscription.endDate).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -297,21 +309,30 @@ export default function SubscriptionPage() {
                     </div>
                     <button
                       onClick={() => toggleQR(sub.id)}
-                      className="ml-4 bg-amber-100 hover:bg-amber-200 text-amber-900 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                      className="ml-4 bg-gradient-to-r from-amber-100 to-amber-200 hover:from-amber-200 hover:to-amber-300 text-amber-900 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all shadow-sm hover:shadow-md border border-amber-300"
                     >
-                      <QrCode className="w-4 h-4" />
-                      {showQR === sub.id ? 'Hide' : 'View'}
+                      <Scan className="w-4 h-4" />
+                      {showQR === sub.id ? 'Hide' : 'View QR'}
                     </button>
                   </div>
                   
                   {showQR === sub.id && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="flex justify-center">
-                        <div className="inline-block bg-gradient-to-br from-amber-100 to-amber-200 p-4 rounded-lg">
-                          <QrCode className="w-32 h-32 text-amber-800" />
+                    <div className="mt-4 pt-4 border-t-2 border-amber-100">
+                      <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-xl border border-amber-200">
+                        <div className="flex justify-center mb-3">
+                          <div className="inline-block bg-white p-3 rounded-lg shadow-md">
+                            <QRCodeSVG 
+                              value={sub.id}
+                              size={150}
+                              level="H"
+                              includeMargin={true}
+                              fgColor="#78350f"
+                              bgColor="#ffffff"
+                            />
+                          </div>
                         </div>
+                        <p className="text-center text-gray-700 text-xs font-mono bg-white inline-block px-3 py-1 rounded-lg mx-auto block w-fit border border-amber-200">{sub.id}</p>
                       </div>
-                      <p className="text-center text-gray-600 text-sm mt-2 font-mono">{sub.id}</p>
                     </div>
                   )}
                 </div>

@@ -70,20 +70,29 @@ export default function BuyTicketPage() {
       return;
     }
 
-    // Find routes that connect these stations
+    // Find routes that connect these stations (bidirectional search)
     const matching = routes.filter(route => {
-      // Direct route
-      if (route.startStation === fromStation && route.endStation === toStation) {
-        return true;
-      }
-      // Route with intermediate stations
-      if (route.stations && route.stations.length > 0) {
-        const stationNames = route.stations.map(s => s.name);
-        const fromIndex = stationNames.indexOf(fromStation);
-        const toIndex = stationNames.indexOf(toStation);
-        return fromIndex !== -1 && toIndex !== -1 && fromIndex < toIndex;
-      }
-      return false;
+      // Check forward direction (A → B)
+      const forwardMatch = 
+        (route.startStation === fromStation && route.endStation === toStation) ||
+        (route.stations && route.stations.length > 0 && (() => {
+          const stationNames = route.stations.map(s => s.name);
+          const fromIndex = stationNames.indexOf(fromStation);
+          const toIndex = stationNames.indexOf(toStation);
+          return fromIndex !== -1 && toIndex !== -1 && fromIndex < toIndex;
+        })());
+
+      // Check reverse direction (B → A) - buses go back and forth
+      const reverseMatch = 
+        (route.startStation === toStation && route.endStation === fromStation) ||
+        (route.stations && route.stations.length > 0 && (() => {
+          const stationNames = route.stations.map(s => s.name);
+          const fromIndex = stationNames.indexOf(fromStation);
+          const toIndex = stationNames.indexOf(toStation);
+          return fromIndex !== -1 && toIndex !== -1 && toIndex < fromIndex;
+        })());
+
+      return forwardMatch || reverseMatch;
     });
 
     setAvailableRoutes(matching);
