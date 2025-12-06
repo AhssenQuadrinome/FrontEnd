@@ -1,11 +1,13 @@
-FROM node:18-alpine
+FROM node:22-alpine
+
+USER node
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
 RUN npm install
 
-COPY . .
+COPY --chown=node:node . .
 
 EXPOSE 5173
 
