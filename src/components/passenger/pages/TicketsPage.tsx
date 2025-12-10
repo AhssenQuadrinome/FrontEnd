@@ -155,7 +155,7 @@ export default function TicketsPage() {
       arrivalStation: route?.endStation || 'Station d\'arrivée',
       price: ticket.price,
       currency: 'DH',
-      status: (ticket.status.toLowerCase() as 'active' | 'expired'),
+      status: ticket.status.toLowerCase(), // Keep the actual backend status (active, used)
       purchaseDate: new Date(ticket.purchaseDate).toLocaleDateString(),
       qrCode: ticket.id,
       intermediateStations: route?.stations?.map(s => ({
@@ -216,14 +216,14 @@ export default function TicketsPage() {
         Active
       </button>
       <button
-        onClick={() => setStatusFilter('expired')}
+        onClick={() => setStatusFilter('used')}
         className={`px-8 py-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
-          statusFilter === 'expired'
+          statusFilter === 'used'
             ? 'bg-gradient-to-br from-gray-600 to-gray-700 text-white shadow-xl scale-105 transform'
             : 'text-gray-600 hover:text-gray-700 hover:bg-white/50'
         }`}
       >
-        Expired
+        Used
       </button>
     </div>
 
