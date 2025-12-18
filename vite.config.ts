@@ -11,4 +11,10 @@ export default defineConfig({
       plugins: [tailwind()],
     },
   },
+  server: {
+    host: true,
+    allowedHosts: [
+      "ourbusway-alb-1436595524.us-east-1.elb.amazonaws.com"
+    ]
+  }
 });
