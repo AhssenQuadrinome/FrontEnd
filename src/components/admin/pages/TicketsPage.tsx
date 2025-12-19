@@ -144,9 +144,6 @@ export default function TicketsPage() {
     { label: "Monthly Subscriptions", value: 0, percentage: 0, color: "#8B2F24" },
   ];
 
-  // Calculate total from the sum of all revenue items to ensure consistency
-  const totalRevenueSum = revenueData.reduce((sum, item) => sum + item.value, 0);
-
   // Calculate SVG pie chart segments
   const createPieSegments = () => {
     let currentAngle = -90;
@@ -291,7 +288,7 @@ export default function TicketsPage() {
                   <circle cx="50" cy="50" r="25" fill="white" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center flex-col">
-                  <p className="text-2xl font-bold text-[#181E4B]">{totalRevenueSum.toFixed(0)} MAD</p>
+                  <p className="text-2xl font-bold text-[#181E4B]">{revenueByType?.totalRevenue?.toFixed(0) || 0} MAD</p>
                   <p className="text-xs text-gray-600">Total Revenue</p>
                 </div>
               </div>
