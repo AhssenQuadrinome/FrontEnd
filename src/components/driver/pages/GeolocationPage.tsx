@@ -240,11 +240,11 @@ export default function GeolocationPage() {
             </button>
           </div>
 
-          {/* Bus Number Input (Optional) */}
+          {/* Bus Number Input */}
           {!sharingLocation && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bus Number (Optional)
+                Bus Number 
               </label>
               <input
                 type="text"

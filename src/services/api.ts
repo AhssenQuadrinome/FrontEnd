@@ -1,7 +1,18 @@
 import axios, { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-// API Gateway base URL
-const API_BASE_URL = 'http://localhost:8080';
+const getApiBaseUrl = () => {
+  // For local development (when accessing via localhost)
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:8080';
+  }
+  
+  // For production (when accessing via ALB or any other domain)
+  return 'http://ourbusway-alb-1436595524.us-east-1.elb.amazonaws.com';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+console.log('API Base URL:', API_BASE_URL);
 
 // Create Axios instance
 const api: AxiosInstance = axios.create({
